@@ -1,0 +1,26 @@
+{
+  "$comment": "SPDX-FileCopyrightText: \u00a9 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>. SPDX-License-Identifier: MPL-2.0",
+  "examples": [
+    {
+      "program": "faithful-record.haec",
+      "ir": "faithful-record.ir.json",
+      "expect": "p-sufficient",
+      "witness": null
+    },
+    {
+      "program": "survey-collapse.haec",
+      "ir": "survey-collapse.ir.json",
+      "expect": "p-insufficient",
+      "witness": [
+        "e_collapse",
+        "fate.quality"
+      ]
+    },
+    {
+      "program": "station-average.haec",
+      "ir": "station-average.ir.json",
+      "expect": "p-sufficient",
+      "witness": null
+    }
+  ]
+}

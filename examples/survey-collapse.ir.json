@@ -1,0 +1,68 @@
+{
+  "$schema": "https://github.com/hyperpolymath/trope-checker/schemas/trope-ir.schema.json",
+  "$comment": "SPDX-FileCopyrightText: © 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>. SPDX-License-Identifier: MPL-2.0",
+  "version": "0.1",
+  "profile": "prevent",
+  "nodes": [
+    {
+      "id": "call.in",
+      "type": "Trope",
+      "present": [
+        "quality",
+        "bearer",
+        "context",
+        "record"
+      ]
+    },
+    {
+      "id": "surveyCell",
+      "type": "Codomain",
+      "codomain": "Bool"
+    }
+  ],
+  "edges": [
+    {
+      "id": "e_collapse",
+      "effect": "collapse",
+      "inputs": [
+        "call.in"
+      ],
+      "output": "surveyCell",
+      "grade": {
+        "fate": {
+          "quality": {
+            "k": "Predicated",
+            "predicate": "isQuack"
+          },
+          "bearer": {
+            "k": "Dropped"
+          },
+          "context": {
+            "k": "Dropped"
+          },
+          "record": {
+            "k": "Dropped"
+          }
+        },
+        "bond": {
+          "k": "Withheld"
+        },
+        "merge": {
+          "k": "Single"
+        }
+      },
+      "note": "collapse[isQuack]"
+    }
+  ],
+  "use_model": {
+    "output": "surveyCell",
+    "floor": {
+      "fate": {
+        "quality": {
+          "k": "Attenuated",
+          "delta": 3
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,15 @@
+-- SPDX-FileCopyrightText: © 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>
+-- SPDX-License-Identifier: MPL-2.0
+--
+-- A naturalist's lossless record of THIS duck's morning call.
+-- Lowers to a single `preserve` edge (grade ε). Consumer: a bioacoustics study
+-- whose floor demands the call's spectral content. Verdict: p-sufficient.
+
+let dawnCall : ! { fate = {quality=Present, bearer=Present, context=Present, record=Present},
+                   bond = Intact, merge = Single } =
+  preserve (trope {
+    quality = "hoarse-quack-spectrogram",
+    bearer  = "ring#A2173",
+    context = "Mill-Pond 2026-06-22 drizzle",
+    record  = "lossless-wav+provenance"
+  })

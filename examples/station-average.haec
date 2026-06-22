@@ -1,0 +1,12 @@
+-- SPDX-FileCopyrightText: © 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>
+-- SPDX-License-Identifier: MPL-2.0
+--
+-- A weather page shows the regional figure as the labelled mean of two stations.
+-- `fuse[tag]` requires the provenance tag (an untagged merge does not parse).
+-- A consumer that accepts a labelled merge: p-sufficient.
+
+let regional : ! { fate = {quality=Present, bearer=Present, context=Present, record=Present},
+                   bond = Intact, merge = Fused("mean-of-2-stations") } =
+  fuse["mean-of-2-stations"]
+    (trope { quality = "12.4C", bearer = "station-EGLL", context = "12:00Z", record = "METAR" })
+    (trope { quality = "11.9C", bearer = "station-EGLC", context = "12:00Z", record = "METAR" })
