@@ -9,7 +9,7 @@ The release-audit gate. Ground-truth by running the tools.
 [cols="1,2,1",options="header"]
 |===
 | Check | Command | State 2026-06-22
-| Examples lower to valid IR | `just check` (`python3 tests/check-examples.py`) | PASS (3/3)
+| Examples lower to valid IR | `just check` (`bash tests/check-examples.sh`) | PASS (3/3)
 | Round-trip through the checker | `just haec-roundtrip` (needs sibling trope-checker) | PASS (verdicts + witness match)
 | Design artefacts present | grammar.ebnf, elaboration.adoc | PASS
 |===
