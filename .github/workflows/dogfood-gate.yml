@@ -261,31 +261,16 @@ jobs:
 
           echo "has_manifest=true" >> "$GITHUB_OUTPUT"
 
-          # Validate TOML structure using Python 3.11+ tomllib
-          python3 -c "
-import tomllib, sys
-with open('eclexiaiser.toml', 'rb') as f:
-    data = tomllib.load(f)
-project = data.get('project', {})
-if not project.get('name', '').strip():
-    print('ERROR: project.name is required', file=sys.stderr)
-    sys.exit(1)
-functions = data.get('functions', [])
-if not functions:
-    print('ERROR: at least one [[functions]] entry is required', file=sys.stderr)
-    sys.exit(1)
-for fn in functions:
-    if not fn.get('name', '').strip():
-        print('ERROR: function name cannot be empty', file=sys.stderr)
-        sys.exit(1)
-    if not fn.get('source', '').strip():
-        print(f'ERROR: function {fn[\"name\"]} has no source path', file=sys.stderr)
-        sys.exit(1)
-print(f'Valid: {project[\"name\"]} ({len(functions)} function(s))')
-" || {
-            echo "::error file=eclexiaiser.toml::Invalid eclexiaiser.toml — see step output for details"
-            exit 1
-          }
+          # Validate eclexiaiser.toml structure (bash + grep; no Python — estate no-Python rule).
+          ok=1
+          grep -qE '^[[:space:]]*name[[:space:]]*=[[:space:]]*"[^"]+"' eclexiaiser.toml || { echo "::error::project.name is required"; ok=0; }
+          nfun=$(grep -cE '^[[:space:]]*\[\[functions\]\]' eclexiaiser.toml || true)
+          [ "${nfun:-0}" -ge 1 ] || { echo "::error::at least one [[functions]] entry is required"; ok=0; }
+          nname=$(grep -cE '^[[:space:]]*name[[:space:]]*=[[:space:]]*"[^"]+"' eclexiaiser.toml || true)
+          nsrc=$(grep -cE '^[[:space:]]*source[[:space:]]*=[[:space:]]*"[^"]+"' eclexiaiser.toml || true)
+          [ "${nname:-0}" -ge "$(( ${nfun:-0} + 1 ))" ] || { echo "::error::a function has an empty or missing name"; ok=0; }
+          [ "${nsrc:-0}" -ge "${nfun:-0}" ] || { echo "::error::a function has an empty or missing source"; ok=0; }
+          if [ "$ok" = 1 ]; then echo "Valid: eclexiaiser.toml (${nfun:-0} function(s))"; else echo "::error file=eclexiaiser.toml::Invalid eclexiaiser.toml"; exit 1; fi
 
       - name: Write summary
         run: |
