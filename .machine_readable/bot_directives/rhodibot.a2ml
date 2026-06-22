@@ -1,0 +1,18 @@
+# SPDX-FileCopyrightText: © 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>
+# SPDX-License-Identifier: MPL-2.0
+# Media-Type: application/vnd.bot-directive+a2ml
+#
+# Per-repo directive for rhodibot — the DETERMINISTIC, symbolic RSR verifier
+# (gitbot-fleet/bots/rhodibot). rhodibot acts from hard-coded rules + these guards;
+# it is NOT a neural agent, so the no-automated-licence-edits rule (which scopes to
+# neural agents) does not forbid its bounded SPDX normalisation. Repo kind: software.
+
+schema_version = "1.0"
+directive_type = "bot-directive"
+bot = "rhodibot"
+scope = "rsr-compliance"
+enforcement = "full"
+repo-kind = "software"
+allow = ["metadata", "docs", "repo-structure checks", "policy validation", "SPDX normalisation to the repo's declared licences (code/config -> MPL-2.0; prose docs -> CC-BY-SA-4.0)"]
+deny = ["destructive edits without approval", "relicensing third-party / vendored / forked files", "any SPDX change whose correct licence cannot be deterministically determined (leave untouched)", "converting AGPL or other deliberate (non-drift) licences"]
+notes = "ACK: haec rhodibot directive loaded (FULL enforcement, software/language repo). Auto-fix limited to docs/metadata formatting + deterministic SPDX normalisation; never edit design/ or examples/ semantics without approval; leave undeterminable licences untouched."
