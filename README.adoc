@@ -129,7 +129,7 @@ compiler yet — `compiler/` and `lsp/` are named future work (`STATUS.adoc`).
 ----
 just check     # validate examples/*.ir.json against the vendored IR schema
 # full round-trip (verdicts) needs a checkout of the sibling trope-checker:
-python3 ../trope-checker/src/checker/tropecheck.py examples/survey-collapse.ir.json
+../trope-checker/src/idris2/build/exec/tropecheck examples/survey-collapse.ir.json
 ----
 
 == Licence

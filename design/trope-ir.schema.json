@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/hyperpolymath/trope-checker/schemas/trope-ir.schema.json",
   "title": "Trope IR",
-  "$comment": "SPDX-FileCopyrightText: © 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>. SPDX-License-Identifier: MPL-2.0. The language-neutral interchange of the trope-particularity calculus (spec/calculus.adoc). This is the canonical PREVENT profile (DEPLOY_VARIANT=prevent, R-2026-06-22): the three deceptive grade values (fate=Falsified, bond=Misbound, merge=Conflated) and the untagged merge are MALFORMED here and are rejected at validation with the offending coordinate named. The grade shape is the dependent record Sigma(fate). Bond(fate.bearer) x Merge; the if/then/else on bond makes bearer-incoherent grades unrepresentable (HC-4). The semantics (Idris2 src/) carries the COMPLETE lattices including the deceptive bottoms; the detect-profile schema (trope-ir.detect.schema.json) permits them and defers the check to the verdict.",
+  "$comment": "SPDX-FileCopyrightText: © 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>. SPDX-License-Identifier: MPL-2.0. The language-neutral interchange of the trope-particularity calculus (spec/calculus.adoc). This is the canonical PREVENT profile (DEPLOY_VARIANT=prevent, R-2026-06-22): the three deceptive grade values (fate=Falsified, bond=Misbound, merge=Conflated) and the untagged merge are MALFORMED here and are rejected at validation with the offending coordinate named. The grade shape is the dependent record Sigma(fate). Bond(fate.bearer) x Merge; the if/then/else on bond makes bearer-incoherent grades unrepresentable (HC-4). The semantics (Idris2 src/) carries the COMPLETE lattices including the deceptive bottoms; the detect profile (calculus §6.1) permits them and defers the check to the verdict; it is documented in the calculus, not shipped as a separate schema here.",
   "description": "A labelled DAG: nodes are property-instances (field-presence + type tag), edges are effect applications carrying a loss-shape grade, and a use-model node carries the floor. The checker is a pure function from this document to a verdict.",
   "type": "object",
   "required": ["version", "profile", "nodes", "edges", "use_model"],
@@ -14,7 +14,7 @@
     "profile": {
       "type": "string",
       "const": "prevent",
-      "$comment": "This schema is the prevent profile. A detect-profile document MUST use trope-ir.detect.schema.json and declare profile=detect."
+      "$comment": "This schema is the prevent profile. The detect profile (calculus §6.1) is documented there, not shipped as a separate schema; this repository serves prevent."
     },
     "nodes": {
       "type": "array",
