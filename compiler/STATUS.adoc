@@ -1,0 +1,22 @@
+// SPDX-FileCopyrightText: © 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>
+// SPDX-License-Identifier: MPL-2.0
+// SPDX-License-Identifier: CC-BY-SA-4.0
+= compiler/ — STATUS (named future work)
+:revdate: 2026-06-22
+
+*Not built.* This directory is scaffolded for the Haec compiler. Per the build
+brief, the compiler/codegen/runtime are explicitly *beyond* the current handover.
+
+Planned stages (in dependency order):
+
+. *Parser* — surface syntax per `../design/grammar.ebnf`.
+. *Type-checker* — bidirectional; checks grades against declared loss-signatures at
+  recursive/effectful boundaries, infers through the straight-line fragment
+  (calculus §7).
+. *Elaborator* — lowers each construct to a Trope IR edge per
+  `../design/elaboration.adoc`, emitting a `*.ir.json` the checker consumes. This is
+  where each construct's lowering-correctness obligation (O2) must be discharged.
+. *Codegen / runtime* — any Turing-complete target; unconstrained at this stage.
+
+Until this exists, `examples/` is hand-lowered and round-tripped through the checker
+to pin the intended elaboration.

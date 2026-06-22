@@ -1,0 +1,32 @@
+// SPDX-FileCopyrightText: © 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>
+// SPDX-License-Identifier: MPL-2.0
+// SPDX-License-Identifier: CC-BY-SA-4.0
+= AFFIRMATION — Haec
+:revdate: 2026-06-22
+
+A dated, ground-truthed honesty snapshot. This is the brief's "STATUS" for Haec:
+what exists, what is verified, what is deferred — stated plainly, no overclaim.
+
+== As of 2026-06-22
+
+*What exists (design pass):* the surface grammar (`design/grammar.ebnf`), the
+elaboration table with a per-construct lowering-correctness (O2) obligation
+(`design/elaboration.adoc`), and `examples/` pairing small programs with their
+lowered Trope IR.
+
+*Ground truth:* every `examples/*.ir.json` is schema-valid against the IR contract
+and round-trips through the sibling trope-checker to the verdict the example states
+(faithful record → `p-sufficient`; survey collapse → `p-insufficient`, witness =
+the collapse edge; labelled aggregate fuse → `p-sufficient`). `just check`
+validates this standalone against the vendored schema.
+
+*What does NOT exist yet (deferred, named):* the compiler (parser, type-checker,
+elaborator, codegen — `compiler/STATUS.adoc`), the LSP (`lsp/STATUS.adoc`), and a
+runtime. The O2 lowering-correctness *proofs* are stated as obligations, not yet
+discharged (HC-5: stated, not asserted-as-done).
+
+*Honest scope:* Haec is one front-end among many; it defines neither the checker
+nor the vocabulary. Its sole present claim is that its elaboration targets the IR
+and its examples lower to IR the checker accepts.
+
+— Authored by the build agent under owner direction; signed in git history.

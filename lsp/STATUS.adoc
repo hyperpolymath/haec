@@ -1,0 +1,12 @@
+// SPDX-FileCopyrightText: © 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>
+// SPDX-License-Identifier: MPL-2.0
+// SPDX-License-Identifier: CC-BY-SA-4.0
+= lsp/ — STATUS (named future work)
+:revdate: 2026-06-22
+
+*Not built.* Scaffolded for Haec editor support. Beyond the current handover.
+
+When built, the natural surface is: show each expression's inferred loss-shape
+grade inline; surface the *witness edge* from a `p-insufficient` verdict at the
+offending construct; and flag any construct whose lowering-correctness obligation
+(O2) is still open. Depends on `compiler/` (parser + type-checker + elaborator).
