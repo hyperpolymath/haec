@@ -1,0 +1,16 @@
+-- SPDX-FileCopyrightText: © 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>
+-- SPDX-License-Identifier: MPL-2.0
+--
+-- A bird survey logs the same call as one column: heard a quack? -> yes.
+-- `collapse[isQuack]` = predicate[quality,isQuack] then drop the rest.
+-- Against a floor demanding spectral content, the checkbox is not enough.
+-- Verdict: p-insufficient; witness: the collapse edge.
+
+let surveyCell : ! { fate = {quality=Predicated, bearer=Dropped, context=Dropped, record=Dropped},
+                     bond = Withheld, merge = Single } =
+  collapse[isQuack] (trope {
+    quality = "hoarse-quack-spectrogram",
+    bearer  = "ring#A2173",
+    context = "Mill-Pond 2026-06-22 drizzle",
+    record  = "lossless-wav+provenance"
+  })

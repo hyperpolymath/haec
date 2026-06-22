@@ -1,0 +1,72 @@
+{
+  "$schema": "https://github.com/hyperpolymath/trope-checker/schemas/trope-ir.schema.json",
+  "$comment": "SPDX-FileCopyrightText: © 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>. SPDX-License-Identifier: MPL-2.0",
+  "version": "0.1",
+  "profile": "prevent",
+  "nodes": [
+    {
+      "id": "dawnCall.in",
+      "type": "Trope",
+      "present": [
+        "quality",
+        "bearer",
+        "context",
+        "record"
+      ]
+    },
+    {
+      "id": "dawnCall",
+      "type": "Trope",
+      "present": [
+        "quality",
+        "bearer",
+        "context",
+        "record"
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "id": "e_preserve",
+      "effect": "preserve",
+      "inputs": [
+        "dawnCall.in"
+      ],
+      "output": "dawnCall",
+      "grade": {
+        "fate": {
+          "quality": {
+            "k": "Present"
+          },
+          "bearer": {
+            "k": "Present"
+          },
+          "context": {
+            "k": "Present"
+          },
+          "record": {
+            "k": "Present"
+          }
+        },
+        "bond": {
+          "k": "Intact"
+        },
+        "merge": {
+          "k": "Single"
+        }
+      },
+      "note": "preserve (ε)"
+    }
+  ],
+  "use_model": {
+    "output": "dawnCall",
+    "floor": {
+      "fate": {
+        "quality": {
+          "k": "Attenuated",
+          "delta": 3
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,82 @@
+{
+  "$schema": "https://github.com/hyperpolymath/trope-checker/schemas/trope-ir.schema.json",
+  "$comment": "SPDX-FileCopyrightText: © 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>. SPDX-License-Identifier: MPL-2.0",
+  "version": "0.1",
+  "profile": "prevent",
+  "nodes": [
+    {
+      "id": "s1",
+      "type": "Trope",
+      "present": [
+        "quality",
+        "bearer",
+        "context",
+        "record"
+      ]
+    },
+    {
+      "id": "s2",
+      "type": "Trope",
+      "present": [
+        "quality",
+        "bearer",
+        "context",
+        "record"
+      ]
+    },
+    {
+      "id": "regional",
+      "type": "Trope",
+      "present": [
+        "quality",
+        "bearer",
+        "context",
+        "record"
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "id": "e_fuse",
+      "effect": "fuse",
+      "inputs": [
+        "s1",
+        "s2"
+      ],
+      "output": "regional",
+      "grade": {
+        "fate": {
+          "quality": {
+            "k": "Present"
+          },
+          "bearer": {
+            "k": "Present"
+          },
+          "context": {
+            "k": "Present"
+          },
+          "record": {
+            "k": "Present"
+          }
+        },
+        "bond": {
+          "k": "Intact"
+        },
+        "merge": {
+          "k": "Fused",
+          "tau": "mean-of-2-stations"
+        }
+      },
+      "note": "fuse[mean-of-2-stations]"
+    }
+  ],
+  "use_model": {
+    "output": "regional",
+    "floor": {
+      "merge": {
+        "k": "Fused",
+        "tau": "any"
+      }
+    }
+  }
+}

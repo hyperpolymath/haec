@@ -5,11 +5,11 @@
 #
 [metadata]
 version = "0.1.0"
-last-updated = "{{CURRENT_DATE}}"
+last-updated = "2026-06-22"
 
 [project]
-name = "[YOUR-REPO-NAME]"
-purpose = "{{PROJECT_DESCRIPTION}}"
+name = "Haec"
+purpose = "A Turing-complete language whose type discipline is trope-particularity; it lowers programs to the language-neutral Trope IR."
 
 [ai-allocation]
 agents = [

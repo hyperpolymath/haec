@@ -1,94 +1,49 @@
+// SPDX-FileCopyrightText: © 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>
 // SPDX-License-Identifier: MPL-2.0
-// Copyright (c) Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
-= RSR Template Repo - Explainme
-image:https://img.shields.io/badge/License-MPL_2.0-blue.svg[License: MPL-2.0,link="https://opensource.org/licenses/MPL-2.0"]
+// SPDX-License-Identifier: CC-BY-SA-4.0
+= EXPLAINME — Haec (developer deep-dive)
+:toc: macro
 
-:toc:
-:icons: font
+The README is the pitch; this is the shape of the language and why.
 
-This file explains how the key template claims map to real files.
+== The split that defines Haec
 
-== Central Session Protocol Authority
+Haec writes and type-checks programs and *emits Trope IR*. It does not decide
+acceptability and it does not define the vocabulary. Turing-completeness lives in
+Haec's terms; decidability lives in the checker's grade algebra; they never meet.
+This separation is the whole point — the trust guarantee must be about the IR, not
+about Haec.
 
-Claim:
-Session protocols are centrally maintained and not duplicated in this template.
+== Two artefacts, in order
 
-How this is implemented:
+. `design/grammar.ebnf` — a small surface: term formers, `fix`, the five atomic
+  effects (`attenuate`, `predicate`, `drop`, `sever`, `fuse`) and the sugar
+  (`preserve`, `project`, `collapse`, `detach`).
+. `design/elaboration.adoc` — each construct → a Trope IR edge with its grade, and
+  each construct's *lowering-correctness obligation* (calculus O2). The sugar
+  expands per the calculus (`collapse = predicate ▷ drops`; `detach = drops ▷ sever`).
 
-* The local dispatcher (`session/dispatch.sh`) maps canonical commands to central
-  protocol paths in `standards/session-management-standards`.
-* Local files (`session/custom-checks.k9`, `session/local-hooks.sh`,
-  `coordination.k9`) are integration-only.
+`examples/` is the executable check on the design: each `.haec` is paired with the
+`.ir.json` it lowers to, and that IR round-trips through the checker.
 
-Caveat:
+== Bidirectional checking
 
-* If `SESSION_STANDARDS_DIR` is unset and no adjacent standards checkout exists,
-  the dispatcher records the command but cannot resolve central checklist paths.
+Grades are *checked* against declared loss-signatures at every recursive (`fix`)
+and effectful boundary, and *inferred* through the straight-line fragment. An
+unbounded lossy recursion has fidelity grade `top` — the honest "unknown" — which
+any demanding use-model rejects. The author writes the signature; Haec checks it.
 
-== Canonical Command Surface
+== Why no compiler yet
 
-Claim:
-Template bindings align to one canonical command model.
+This is a design pass (HC-5: small verified increments, no fluent code outrunning
+its proofs). The grammar + elaboration + round-tripping examples pin the language's
+*meaning* before a parser/codegen exists. `compiler/` and `lsp/` are scaffolded
+with `STATUS.adoc` as named future work; the runtime needs only a Turing-complete
+target and is otherwise unconstrained at this stage.
 
-How this is implemented:
+== The deceptive trio is unwritable
 
-* `Justfile` provides thin aliases (`intake-repo`, `checkpoint-change`,
-  `verify-maintenance`, `verify-substantial`, `verify-release`, `close-planned`,
-  `close-urgent`, `recover-repo`, `handover-*`).
-* Every alias calls `session/dispatch.sh` with canonical verb-object pairs.
-
-Caveat:
-
-* Recipes are wrappers only. They do not replace protocol content from
-  the central standards repo.
-
-== Runtime State Is Local
-
-Claim:
-Session state is per-repository runtime output, not standards text.
-
-How this is implemented:
-
-* `session/dispatch.sh` writes command and continuity-core capture stubs to
-  `.session/LAST-CANONICAL-COMMAND.md` in the target repository path.
-
-Caveat:
-
-* Runtime files are intentionally lightweight and require human/agent completion.
-
-== Template Token Policy
-
-Claim:
-Placeholders are explicit template content until initialization.
-
-How this is implemented:
-
-* `README.adoc` and bootstrap recipes keep `{{TOKEN}}` placeholders visible.
-* `just init` performs token replacement.
-
-Caveat:
-
-* Uninitialized placeholders must not be treated as project-specific truth.
-
-== Julia Registry Packages — Standalone Repo Requirement
-
-Claim:
-If this template is used to create a Julia package, it must remain a standalone repository registered with the Julia package registry.
-
-How this is implemented:
-
-* Julia's package registry (General.jl or other) expects each package to be a standalone GitHub repository with `Project.toml` at the repository root.
-* Installation via `Pkg.add()`, dependency resolution, and automated CI/CD all depend on this canonical structure.
-
-Caveat:
-
-* Do NOT move this repository into a monorepo or subdirectory, as this breaks registry registration and package discoverability.
-* See `JULIA-REGISTRY-REQUIREMENT.md` (workspace root) for the complete list of 34 registered Julia packages and enforcement rationale.
-* Non-registry Julia packages can be organized differently if they are not published to any registry.
-
-
-== License
-
-This project is licensed under the Mozilla Public License, v. 2.0. See the `LICENSE` file for details.
-
-SPDX-License-Identifier: MPL-2.0
+There is no surface syntax for value-falsification, mis-binding, or untagged merge
+(HC-3). `fuse` requires a tag. A buggy lowering that emitted a deceptive grade would
+produce malformed IR that the checker rejects at validation — the conflation
+detector at Haec's lowering boundary.

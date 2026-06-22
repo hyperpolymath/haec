@@ -1,0 +1,225 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/hyperpolymath/trope-checker/schemas/trope-ir.schema.json",
+  "title": "Trope IR",
+  "$comment": "SPDX-FileCopyrightText: © 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>. SPDX-License-Identifier: MPL-2.0. The language-neutral interchange of the trope-particularity calculus (spec/calculus.adoc). This is the canonical PREVENT profile (DEPLOY_VARIANT=prevent, R-2026-06-22): the three deceptive grade values (fate=Falsified, bond=Misbound, merge=Conflated) and the untagged merge are MALFORMED here and are rejected at validation with the offending coordinate named. The grade shape is the dependent record Sigma(fate). Bond(fate.bearer) x Merge; the if/then/else on bond makes bearer-incoherent grades unrepresentable (HC-4). The semantics (Idris2 src/) carries the COMPLETE lattices including the deceptive bottoms; the detect-profile schema (trope-ir.detect.schema.json) permits them and defers the check to the verdict.",
+  "description": "A labelled DAG: nodes are property-instances (field-presence + type tag), edges are effect applications carrying a loss-shape grade, and a use-model node carries the floor. The checker is a pure function from this document to a verdict.",
+  "type": "object",
+  "required": ["version", "profile", "nodes", "edges", "use_model"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "$comment": { "type": "string" },
+    "version": { "type": "string", "const": "0.1" },
+    "profile": {
+      "type": "string",
+      "const": "prevent",
+      "$comment": "This schema is the prevent profile. A detect-profile document MUST use trope-ir.detect.schema.json and declare profile=detect."
+    },
+    "nodes": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/node" }
+    },
+    "edges": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/edge" }
+    },
+    "use_model": { "$ref": "#/$defs/useModel" }
+  },
+  "$defs": {
+    "fieldName": { "enum": ["quality", "bearer", "context", "record"] },
+
+    "delta": {
+      "$comment": "A fidelity element of N union {inf, top}. Finite delta is tropical (min-plus) quantified loss; inf is total quantified loss; top is loss of unknown amount.",
+      "oneOf": [
+        { "type": "integer", "minimum": 0 },
+        { "type": "string", "enum": ["inf", "top"] }
+      ]
+    },
+
+    "fatePresent":    { "type": "object", "required": ["k"], "additionalProperties": false, "properties": { "k": { "const": "Present" } } },
+    "fateAttenuated": { "type": "object", "required": ["k", "delta"], "additionalProperties": false, "properties": { "k": { "const": "Attenuated" }, "delta": { "$ref": "#/$defs/delta" } } },
+    "fatePredicated": { "type": "object", "required": ["k", "predicate"], "additionalProperties": false, "properties": { "k": { "const": "Predicated" }, "predicate": { "type": "string", "minLength": 1 } } },
+    "fateDropped":    { "type": "object", "required": ["k"], "additionalProperties": false, "properties": { "k": { "const": "Dropped" } } },
+
+    "fateQuality": {
+      "$comment": "Predicated is well-formed ONLY on the quality field (calculus 3.1). Falsified (deceptive) is excluded under the prevent profile.",
+      "oneOf": [
+        { "$ref": "#/$defs/fatePresent" },
+        { "$ref": "#/$defs/fateAttenuated" },
+        { "$ref": "#/$defs/fatePredicated" },
+        { "$ref": "#/$defs/fateDropped" }
+      ]
+    },
+    "fateNonQuality": {
+      "$comment": "No Predicated off the quality field; no Falsified under prevent.",
+      "oneOf": [
+        { "$ref": "#/$defs/fatePresent" },
+        { "$ref": "#/$defs/fateAttenuated" },
+        { "$ref": "#/$defs/fateDropped" }
+      ]
+    },
+
+    "fate": {
+      "type": "object",
+      "required": ["quality", "bearer", "context", "record"],
+      "additionalProperties": false,
+      "properties": {
+        "quality": { "$ref": "#/$defs/fateQuality" },
+        "bearer":  { "$ref": "#/$defs/fateNonQuality" },
+        "context": { "$ref": "#/$defs/fateNonQuality" },
+        "record":  { "$ref": "#/$defs/fateNonQuality" }
+      }
+    },
+
+    "bond": {
+      "$comment": "Intact where bearer present; Withheld/Severed where bearer absent. Misbound (deceptive, bearer present) is excluded under prevent. The Sigma-dependency is enforced by the grade-level if/then/else, not here.",
+      "type": "object",
+      "required": ["k"],
+      "additionalProperties": false,
+      "properties": { "k": { "enum": ["Intact", "Withheld", "Severed"] } }
+    },
+
+    "merge": {
+      "$comment": "Single, or Fused with a REQUIRED provenance tag tau (R-2026-06-22: an untagged merge does not elaborate). Conflated (deceptive) is excluded under prevent.",
+      "oneOf": [
+        { "type": "object", "required": ["k"], "additionalProperties": false, "properties": { "k": { "const": "Single" } } },
+        { "type": "object", "required": ["k", "tau"], "additionalProperties": false, "properties": { "k": { "const": "Fused" }, "tau": { "type": "string", "minLength": 1 } } }
+      ]
+    },
+
+    "grade": {
+      "$comment": "The dependent record Sigma(fate). Bond(fate.bearer) x Merge. HC-4: the if/then/else makes bearer-incoherent states unrepresentable.",
+      "type": "object",
+      "required": ["fate", "bond", "merge"],
+      "additionalProperties": false,
+      "properties": {
+        "fate":  { "$ref": "#/$defs/fate" },
+        "bond":  { "$ref": "#/$defs/bond" },
+        "merge": { "$ref": "#/$defs/merge" }
+      },
+      "if": {
+        "properties": { "fate": { "properties": { "bearer": { "properties": { "k": { "const": "Dropped" } }, "required": ["k"] } }, "required": ["bearer"] } },
+        "required": ["fate"]
+      },
+      "then": {
+        "$comment": "bearer absent -> bond is a clean named drop (Withheld) or a constitutive severance (Severed).",
+        "properties": { "bond": { "properties": { "k": { "enum": ["Withheld", "Severed"] } } } }
+      },
+      "else": {
+        "$comment": "bearer present -> the tie holds (Intact). Severed/Withheld here would be incoherent (HC-4); Misbound is the deceptive case, excluded under prevent.",
+        "properties": { "bond": { "properties": { "k": { "const": "Intact" } } } }
+      }
+    },
+
+    "node": {
+      "type": "object",
+      "required": ["id", "type"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "type": {
+          "$comment": "Trope[S] (a property-instance over a field-presence subset), FloatingQuality (quality severed; no bearer field), or Codomain (a collapse target, e.g. Bool; a non-trope).",
+          "enum": ["Trope", "FloatingQuality", "Codomain"]
+        },
+        "present": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/fieldName" }
+        },
+        "codomain": { "type": "string", "minLength": 1 },
+        "label": { "type": "string" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "type": { "const": "FloatingQuality" } }, "required": ["type"] },
+          "then": {
+            "$comment": "A FloatingQuality has no bearer field (the severance is structurally visible).",
+            "properties": { "present": { "not": { "contains": { "const": "bearer" } } } }
+          }
+        },
+        {
+          "if": { "properties": { "type": { "const": "Codomain" } }, "required": ["type"] },
+          "then": { "required": ["codomain"] }
+        }
+      ]
+    },
+
+    "edge": {
+      "type": "object",
+      "required": ["id", "effect", "inputs", "output", "grade"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "effect": {
+          "$comment": "The six writable effects. The deceptive trio (falsify, misbind, conflate) and any untagged merge are NOT writable (HC-3); they cannot appear as a well-formed effect here.",
+          "enum": ["preserve", "project", "collapse", "detach", "attenuate", "fuse"]
+        },
+        "inputs": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "minItems": 1,
+          "maxItems": 2
+        },
+        "output": { "type": "string", "minLength": 1 },
+        "grade": { "$ref": "#/$defs/grade" },
+        "note": { "type": "string" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "effect": { "const": "fuse" } }, "required": ["effect"] },
+          "then": {
+            "$comment": "fuse is the only two-instance writable effect; its grade must be a labelled (Fused) merge.",
+            "properties": { "inputs": { "minItems": 2, "maxItems": 2 }, "grade": { "properties": { "merge": { "required": ["tau"], "properties": { "k": { "const": "Fused" } } } } } }
+          },
+          "else": {
+            "$comment": "every other writable effect is single-instance.",
+            "properties": { "inputs": { "minItems": 1, "maxItems": 1 } }
+          }
+        }
+      ]
+    },
+
+    "floorFate": {
+      "$comment": "A floor MAY be specified per field; absent fields impose no demand (calculus 5.2). A floor may not demand a deceptive value.",
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "quality": { "$ref": "#/$defs/fateQuality" },
+        "bearer":  { "$ref": "#/$defs/fateNonQuality" },
+        "context": { "$ref": "#/$defs/fateNonQuality" },
+        "record":  { "$ref": "#/$defs/fateNonQuality" }
+      }
+    },
+
+    "floorGrade": {
+      "$comment": "The minimum retained particularity the use requires. Every coordinate is OPTIONAL; an omitted coordinate imposes no demand on it.",
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "fate":  { "$ref": "#/$defs/floorFate" },
+        "bond":  { "$ref": "#/$defs/bond" },
+        "merge": { "$ref": "#/$defs/merge" }
+      }
+    },
+
+    "useModel": {
+      "type": "object",
+      "required": ["output", "floor"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string" },
+        "label": { "type": "string" },
+        "output": {
+          "$comment": "The node whose accumulated grade is checked against the floor.",
+          "type": "string",
+          "minLength": 1
+        },
+        "floor": { "$ref": "#/$defs/floorGrade" }
+      }
+    }
+  }
+}
