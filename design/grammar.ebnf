@@ -1,0 +1,68 @@
+(* SPDX-FileCopyrightText: © 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk> *)
+(* SPDX-License-Identifier: MPL-2.0 *)
+(*
+   Haec surface grammar (design v0.1) — ISO/IEC 14977 EBNF.
+
+   Haec is a small Turing-complete front-end whose type discipline is
+   trope-particularity. It is deliberately NOT a kitchen sink: term formers,
+   general recursion (`fix`), the FIVE atomic effect forms, and the surface
+   SUGAR (preserve, project, collapse, detach). Every effect lowers to a Trope
+   IR edge — see design/elaboration.adoc. The deceptive trio (falsify, misbind,
+   conflate) is intentionally absent: it is not writable (HC-3).
+*)
+
+program        = { declaration } ;
+
+declaration    = "let", identifier, [ ":", loss_signature ], "=", expression
+               | "fix", identifier, [ ":", loss_signature ], "=", expression ;
+
+expression     = trope_literal
+               | identifier
+               | application
+               | effect
+               | "fix", identifier, ".", expression          (* general recursion *)
+               | "(", expression, ")" ;
+
+application    = expression, expression ;
+
+trope_literal  = "trope", "{", field, { ",", field }, "}" ;
+field          = field_name, "=", value ;
+field_name     = "quality" | "bearer" | "context" | "record" ;
+
+(* ── effects ───────────────────────────────────────────────────────────── *)
+effect         = atomic_effect | surface_sugar ;
+
+(* the five atomic moves that generate the honest fragment *)
+atomic_effect  = "attenuate", "[", delta, "]", expression
+               | "predicate", "[", predicate, "]", expression   (* quality only *)
+               | "drop",      "[", field_set, "]", expression
+               | "sever",     expression
+               | "fuse",      "[", tag, "]", expression, expression ;
+
+(* sugar, expanded per the calculus (design/elaboration.adoc) *)
+surface_sugar  = "preserve", expression
+               | "project",  "[", field_set, "]", expression     (* keep S; drop the rest *)
+               | "collapse", "[", predicate, "]", expression     (* = predicate ▷ drops *)
+               | "detach",   expression ;                        (* = drops ▷ sever *)
+
+(* ── loss signatures (declared at recursive/effectful boundaries) ──────── *)
+loss_signature = "!", grade ;
+grade          = "{", "fate", "=", fate_map, ",",
+                      "bond", "=", bond, ",",
+                      "merge", "=", merge, "}" ;
+fate_map       = "{", field_name, "=", fate, { ",", field_name, "=", fate }, "}" ;
+fate           = "Present" | "Attenuated", "(", delta, ")" | "Predicated" | "Dropped" ;
+bond           = "Intact" | "Withheld" | "Severed" ;
+merge          = "Single" | "Fused", "(", tag, ")" ;
+
+field_set      = field_name, { ",", field_name } ;
+delta          = natural | "inf" | "top" ;
+predicate      = identifier ;
+tag            = string ;
+value          = string | natural | identifier ;
+identifier     = letter, { letter | digit | "_" } ;
+natural        = digit, { digit } ;
+string         = '"', { character - '"' }, '"' ;
+letter         = "a" | "..." | "z" | "A" | "..." | "Z" ;
+digit          = "0" | "..." | "9" ;
+character      = ? any printable character ? ;

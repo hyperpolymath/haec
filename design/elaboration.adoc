@@ -1,0 +1,84 @@
+// SPDX-FileCopyrightText: © 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>
+// SPDX-License-Identifier: MPL-2.0
+// SPDX-License-Identifier: CC-BY-SA-4.0
+= Haec elaboration — surface construct → Trope IR edge
+:revdate: 2026-06-22
+:toc: macro
+:sectnums:
+
+How each Haec construct lowers to a Trope IR effect edge and its grade. The grade
+algebra and the IR are normative in the checker (`trope-checker/spec/`); this table
+is Haec's *lowering*. For every construct we also state its *lowering-correctness
+obligation* (calculus O2) as Haec's burden — a sentence even where the proof is
+later (HC-5: stated, not asserted-as-discharged).
+
+toc::[]
+
+== The unit and the five atoms
+
+[cols="1,2,2",options="header"]
+|===
+| Construct | IR edge (effect, grade) | O2 obligation (Haec's burden)
+| `preserve e`
+| `preserve`, grade ε = (all `Present`, `Intact`, `Single`)
+| Prove the elaborated term is observationally identity on the instance — it drops/blurs/merges nothing.
+| `attenuate[δ] e`
+| `attenuate`, `fate(φ)=Attenuated(δ)` for present φ; `bond`,`merge` unchanged
+| Prove the operation degrades fidelity by at most δ on each present field and touches neither bond nor cardinality (δ=`top` when the bound is unknown — always sound).
+| `predicate[P] e`
+| (atomic) `fate(quality)=Predicated(P)`, others unchanged here
+| Prove the result is exactly `P` applied to the quality, and that `P` is the predicate named.
+| `drop[S] e`
+| `project`/`drop`, `fate(φ)=Dropped` for φ∈S; `bond=Withheld` if `bearer∈S`; `merge=Single`
+| Prove exactly the fields in S are withheld and no others, and that dropping the bearer is a clean named drop (Withheld), not a constitutive severance.
+| `sever e`
+| `detach`-core, `fate(quality)=Present`, others `Dropped`, `bond=Severed`; type → `FloatingQuality`
+| Prove the quality survives intact and the quality–bearer tie is genuinely cut (irrecoverable) — the `Severed`, not merely `Withheld`, claim.
+| `fuse[τ] e₁ e₂`
+| `fuse` (two inputs), `merge=Fused(τ)`, fates `Present`, bond = meet of inputs
+| Prove τ faithfully records the provenance of the blend so plurality is recoverable from it — i.e. the merge is labelled, never silent.
+|===
+
+== Sugar (expanded per the calculus)
+
+[cols="1,2,2",options="header"]
+|===
+| Construct | Expansion | O2 obligation
+| `project[S] e`
+| `drop[Φ∖S] e` — drop the complement of the kept set S
+| As `drop`, for the complement: prove exactly Φ∖S is withheld.
+| `collapse[P] e`
+| `predicate[quality,P] e ▷ drop[bearer,context,record]` — collapse subsumes prior fidelity loss; result fate(quality)=`Predicated(P)`, others `Dropped`, bond `Withheld`, merge `Single`; type → the predicate codomain (e.g. `Bool`)
+| Prove the construct yields *only* the value of P over the quality (a checkbox), with everything else genuinely gone — the `Predicated`-incomparable-to-`Dropped` claim.
+| `detach e`
+| `drop[bearer,context,record] e ▷ sever` — yields `FloatingQuality`
+| Prove the quality is lifted free-standing and the bond is `Severed` (irrecoverable), distinguishing it from a bearer-projection.
+|===
+
+== General recursion (`fix`)
+
+`fix x. e` lowers to the body's edges under the *least-fixed-point grade* of the
+body's grade functional (calculus §7). Haec is *bidirectional*: the author declares
+a `loss_signature` (`! { fate=…, bond=…, merge=… }`) at every recursive and
+effectful boundary; grades are *checked* against it there and *inferred* through the
+straight-line fragment. An unbounded lossy loop has fidelity grade `top` — the
+honest answer; any use-model demanding better than `top` rejects it. The checker
+never executes the term, so Rice's theorem is no obstacle.
+
+*O2 for `fix`:* prove the declared loss-signature is an upper bound (in loss) on the
+body's grade functional, so the lfp it induces is sound.
+
+== The deceptive trio is NOT elaborable
+
+There is no surface form for value-falsification, mis-binding, or untagged merge
+(HC-3). `fuse` *requires* a tag; an untagged merge does not parse. If a (buggy)
+lowering ever emitted `Falsified`/`Misbound`/`Conflated`, the Trope IR would be
+malformed and the checker rejects it at validation, naming the coordinate
+(R-2026-06-22, prevent profile). That rejection is the conflation/deception detector
+at Haec's lowering boundary.
+
+== Worked correspondence
+
+`examples/` pairs each small program with the exact IR it lowers to; those IR
+documents are accepted by the checker and produce the verdicts the examples state.
+The example IR is kept in lockstep with the checker's conformance fixtures.
