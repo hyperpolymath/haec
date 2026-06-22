@@ -6,13 +6,21 @@
 # (gitbot-fleet/bots/rhodibot). rhodibot acts from hard-coded rules + these guards;
 # it is NOT a neural agent, so the no-automated-licence-edits rule (which scopes to
 # neural agents) does not forbid its bounded SPDX normalisation. Repo kind: software.
+#
+# OPERATING MODE (fleet-standard; ALL gitbot-fleet bots honour 'mode'):
+#   active  — perform actions: mutate the repo / open PRs.
+#   audit   — dry-run: do everything EXCEPT mutate; emit FULL forensic/debug output of
+#             what it WOULD have done to a log/artefact (a pretend run).
+#   passive — normal-mode reporting only: summarise repo state; no pretend-run forensics.
+#   ignore  — skip this repo entirely; do not even scan.
 
 schema_version = "1.0"
 directive_type = "bot-directive"
 bot = "rhodibot"
 scope = "rsr-compliance"
+mode = "audit"
 enforcement = "full"
 repo-kind = "software"
 allow = ["metadata", "docs", "repo-structure checks", "policy validation", "SPDX normalisation to the repo's declared licences (code/config -> MPL-2.0; prose docs -> CC-BY-SA-4.0)"]
 deny = ["destructive edits without approval", "relicensing third-party / vendored / forked files", "any SPDX change whose correct licence cannot be deterministically determined (leave untouched)", "converting AGPL or other deliberate (non-drift) licences"]
-notes = "ACK: haec rhodibot directive loaded (FULL enforcement, software/language repo). Auto-fix limited to docs/metadata formatting + deterministic SPDX normalisation; never edit design/ or examples/ semantics without approval; leave undeterminable licences untouched."
+notes = "ACK: haec rhodibot directive loaded (mode=audit, FULL enforcement, software/language repo). While mode=audit rhodibot mutates nothing and only logs. When active: docs/metadata formatting + deterministic SPDX normalisation; never edit design/ or examples/ semantics without approval; leave undeterminable licences untouched."
