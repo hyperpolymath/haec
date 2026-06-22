@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MPL-2.0
-name: NPM/Bun Blocker
+name: "🔴 Gate: No-npm/bun policy"
 on:
   push:
     branches: [main, master]

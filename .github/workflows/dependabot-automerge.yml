@@ -34,7 +34,7 @@
 # Dependabot config via the github-actions ecosystem block, so SHA
 # bumps for dependabot/fetch-metadata flow through the same path.
 
-name: Dependabot Auto-Merge
+name: "⚙ Auto: Dependabot auto-merge"
 on:
   pull_request:
     types: [opened, reopened, synchronize]

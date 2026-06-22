@@ -1,0 +1,52 @@
+# SPDX-FileCopyrightText: © 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>
+# SPDX-License-Identifier: MPL-2.0
+#
+# CI criticality tiers — the source of truth for what blocks a merge (pilot).
+# Workflow name: fields carry the same glyph so the GitHub checks list is self-sorting.
+#   🔴 Gate (must)     — pass-or-die; merge-blocking; SET THESE AS BRANCH-PROTECTION REQUIRED CHECKS.
+#   🟡 Check (should)  — important; reviewed; waivable on purpose.
+#   ⚪ Advisory (could)— a score / deep / experimental pass; skippable in a rush.
+#   ⚙ Auto            — not a gate; a side-effecting job.
+
+[meta]
+scheme = "Gate / Check / Advisory / Auto  (must / should / could / automation)"
+pilot = true
+note = "Pilot in the three trope repos; promote to standards + rsr-template once proven."
+
+# 🔴 Gate — must pass (branch-protection required checks)
+[gate]
+"guix-nix-policy" = "Guix-only package policy — Nix banned; Guix only"
+"npm-bun-blocker" = "No-npm/bun policy — banned toolchain = do not ship"
+"quality" = "Code quality (fmt/lint/test) — formatting/lint/tests must pass"
+"rsr-antipattern" = "RSR anti-pattern scan — structural anti-patterns block merge"
+"secret-scanner" = "Secret scan — leaked secret = do not ship"
+"security-policy" = "Security policy present — SECURITY.md must exist"
+"static-analysis-gate" = "Static analysis — static-analysis gate must pass"
+"trope-check" = "Trope conformance — IR schema + verified core + conformance"
+"ts-blocker" = "No-TypeScript policy — banned language = do not ship"
+"wellknown-enforcement" = ".well-known / RFC 9116 — security.txt + RSR well-known"
+
+# 🟡 Check — should pass
+[check]
+"codeql" = "CodeQL security analysis — findings reviewed, not auto-blocking"
+"dogfood-gate" = "RSR self-use (dogfooding) — repo uses its own RSR tooling"
+"e2e" = "E2E + aspect + bench — integration; may be skipped in a rush"
+"estate-rules" = "Estate rules — estate conventions"
+"governance" = "Governance metadata — governance docs present"
+"hypatia-scan" = "Hypatia baseline security scan — baseline scan (deep neurosymbolic = advisory, in standards)"
+"openssf-compliance" = "OpenSSF best-practices — should pass; waivable on review"
+"rust-ci" = "Rust CI (build/test) — Rust build + test"
+"workflow-linter" = "Workflow security lint — workflow hygiene"
+
+# ⚪ Advisory — could skip in a rush
+[advisory]
+"scorecard" = "OpenSSF Scorecard (score) — a score, not a gate"
+
+# ⚙ Auto — not a gate
+[automation]
+"boj-build" = "BoJ server build trigger — side-effect: triggers a build"
+"dependabot-automerge" = "Dependabot auto-merge — side-effect: merges dep PRs"
+"instant-sync" = "Instant sync — side-effect: sync"
+"mirror" = "Mirror to forges — side-effect: pushes mirrors"
+"release" = "Release — side-effect: cuts releases"
+"rhodibot" = "Rhodibot RSR auto-fix — side-effect: auto-fix bot"

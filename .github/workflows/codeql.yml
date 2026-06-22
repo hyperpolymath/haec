@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MPL-2.0
-name: CodeQL Security Analysis
+name: "🟡 Check: CodeQL security analysis"
 on:
   push:
     branches: [main, master]

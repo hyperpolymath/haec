@@ -4,7 +4,7 @@
 # Release workflow — triggered by version tags (v*).
 # Builds artifacts, generates changelog via git-cliff, creates a GitHub Release,
 # and produces SLSA provenance attestations.
-name: Release
+name: "⚙ Auto: Release"
 on:
   push:
     tags:

@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MPL-2.0
-name: Well-Known Standards (RFC 9116 + RSR)
+name: "🔴 Gate: .well-known / RFC 9116"
 on:
   push:
     branches: [main, master]

@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: MPL-2.0
 # Instant Forge Sync - Triggers propagation to all forges on push/release
-name: Instant Sync
+name: "⚙ Auto: Instant sync"
 on:
   push:
     branches: [main, master]

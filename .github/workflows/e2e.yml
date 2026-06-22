@@ -12,7 +12,7 @@
 # INSTRUCTIONS: Uncomment and customise the section matching your stack.
 # Delete sections that don't apply. See examples in each job.
 
-name: E2E + Aspect + Bench
+name: "🟡 Check: E2E + aspect + bench"
 on:
   push:
     branches: [main, master, develop]
