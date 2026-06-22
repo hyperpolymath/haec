@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: PMPL-1.0-or-later
-name: Hypatia Security Scan
+name: "🟡 Check: Hypatia baseline security scan"
 
 on:
   push:

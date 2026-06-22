@@ -2,7 +2,7 @@
 # Rust CI — thin wrapper calling the shared estate reusable in
 # hyperpolymath/standards. Configure once, propagate everywhere.
 # See: docs/CI-REUSABLE-WORKFLOWS.adoc in standards.
-name: Rust CI
+name: "🟡 Check: Rust CI (build/test)"
 on:
   push:
     branches: [main, master]

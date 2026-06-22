@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MPL-2.0
 # RSR Anti-Pattern Check - Uses reusable workflow from standards
 
-name: RSR Anti-Pattern Check
+name: "🔴 Gate: RSR anti-pattern scan"
 on:
   push:
     branches: [main, master, develop]

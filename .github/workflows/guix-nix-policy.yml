@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MPL-2.0
-name: Guix/Nix Package Policy
+name: "🔴 Gate: Guix-only package policy"
 on:
   push:
     branches: [main, master]

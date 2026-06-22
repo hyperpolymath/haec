@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: PMPL-1.0-or-later
-name: OSSF Scorecard
+name: "⚪ Advisory: OpenSSF Scorecard (score)"
 
 on:
   push:

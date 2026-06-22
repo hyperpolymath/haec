@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MPL-2.0
-name: TypeScript/JavaScript Blocker
+name: "🔴 Gate: No-TypeScript policy"
 on:
   push:
     branches: [main, master]

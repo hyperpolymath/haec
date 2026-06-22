@@ -9,7 +9,7 @@
 # Each rule is enforced by an executable check script under scripts/. Failures
 # are surfaced as workflow errors so the rule can't silently regress.
 
-name: Estate Rules
+name: "🟡 Check: Estate rules"
 on:
   push:
     branches: [main]

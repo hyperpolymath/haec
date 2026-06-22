@@ -10,7 +10,7 @@
 #
 # Runs weekly and on Hypatia scan completion.
 
-name: "\U0001F916 Rhodibot — RSR Auto-Fix"
+name: "⚙ Auto: Rhodibot RSR auto-fix"
 on:
   schedule:
     - cron: '0 6 * * 1' # Every Monday at 06:00 UTC

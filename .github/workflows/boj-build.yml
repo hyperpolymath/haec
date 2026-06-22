@@ -5,7 +5,7 @@
 # It is a no-op if BOJ_SERVER_URL is not set or the server is unreachable.
 # To enable: set BOJ_SERVER_URL as a repository secret or variable.
 # To disable: delete this file or leave BOJ_SERVER_URL unset.
-name: BoJ Server Build Trigger
+name: "⚙ Auto: BoJ server build trigger"
 on:
   push:
     branches: [main, master]

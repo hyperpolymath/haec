@@ -2,7 +2,7 @@
 # Copyright (c) 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>
 #
 # Haec: every example lowers to a well-formed Trope IR document (bash + jq, no Python).
-name: trope-check
+name: "🔴 Gate: Trope conformance"
 on:
   push:
     paths: ['design/**', 'examples/**', 'tests/**', '.github/workflows/trope-check.yml']
