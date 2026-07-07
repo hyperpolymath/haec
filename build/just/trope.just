@@ -9,4 +9,6 @@
 check: haec-examples
 
 haec-examples:
-    bash tests/check-examples.sh
+    # justfile_directory() so the recipe is cwd-robust: older just (≤1.32) runs
+    # imported recipes from THIS file's directory, newer just from the root.
+    bash {{justfile_directory()}}/tests/check-examples.sh
