@@ -1,0 +1,65 @@
+# SPDX-License-Identifier: MPL-2.0
+name: "CI / required"
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  required:
+    name: "CI / required"
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    container:
+      # Idris 2 0.7.0, pinned by immutable image digest.
+      image: ghcr.io/stefan-hoeck/idris2-pack@sha256:de9781906050dc44704ec6de0108c86f899ef17b2642932b79e00245d613b8ad
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Set up Zig
+        uses: goto-bus-stop/setup-zig@abea47f85e598557f500fa1fd2ab7464fcb39406 # v2.2.1
+        with:
+          version: 0.15.2
+
+      - name: Typecheck the Idris2 ABI
+        shell: bash
+        run: |
+          set -euo pipefail
+          idris2 --version | grep -Fx 'Idris 2, version 0.7.0'
+          idris2 --typecheck abi.ipkg
+
+      - name: Compile and test the Zig FFI
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(zig version)" = '0.15.2'
+          zig fmt --check \
+            src/interface/ffi/build.zig \
+            src/interface/ffi/src/main.zig \
+            src/interface/ffi/test/integration_test.zig
+          (
+            cd src/interface/ffi
+            zig build --summary all
+            zig build test --summary all
+          )
+
+      - name: Validate repository contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          find tests scripts -type f -name '*.sh' -print0 \
+            | xargs -0 -r bash -n
+          bash tests/check-examples.sh
+          bash tests/aspect_tests.sh
+          bash scripts/check-root-shape.sh .
+          bash tests/workflows/validate_workflows_test.sh

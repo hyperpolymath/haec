@@ -81,26 +81,15 @@ import? "build/just/assess.just"
 # BUILD & COMPILE
 # ═══════════════════════════════════════════════════════════════════════════════
 
-# Build the project (debug mode)
+# Typecheck the ABI and build both libhaec variants (debug mode)
 build *args:
-    @echo "Building haec (debug)..."
-    # TODO: Replace with your build command
-    # Examples:
-    #   cargo build {{args}}                    # Rust
-    #   mix compile {{args}}                    # Elixir
-    #   zig build {{args}}                      # Zig
-    #   deno task build {{args}}                # Deno/ReScript
-    @echo "Build complete"
+    idris2 --typecheck abi.ipkg
+    cd src/interface/ffi && zig build {{args}}
 
 # Build in release mode with optimizations
 build-release *args:
-    @echo "Building haec (release)..."
-    # TODO: Replace with your release build command
-    # Examples:
-    #   cargo build --release {{args}}
-    #   MIX_ENV=prod mix compile {{args}}
-    #   zig build -Doptimize=ReleaseFast {{args}}
-    @echo "Release build complete"
+    idris2 --typecheck abi.ipkg
+    cd src/interface/ffi && zig build -Doptimize=ReleaseSafe {{args}}
 
 # Build and watch for changes (requires entr or similar)
 build-watch:
@@ -113,9 +102,8 @@ build-watch:
 
 # Clean build artifacts [reversible: rebuild with `just build`]
 clean:
-    @echo "Cleaning..."
-    # TODO: Customize for your build system
-    rm -rf target/ _build/ build/ dist/ out/ obj/ bin/
+    # Deliberately limited to generated compiler output. `build/` is source.
+    rm -rf .zig-cache src/interface/ffi/.zig-cache src/interface/ffi/zig-out build/exec
 
 # Deep clean including caches [reversible: rebuild]
 clean-all: clean
@@ -127,47 +115,35 @@ clean-all: clean
 
 # Run all tests
 test *args:
-    @echo "Running tests..."
-    # TODO: Replace with your test command
-    # Examples:
-    #   cargo test {{args}}
-    #   mix test {{args}}
-    #   zig build test {{args}}
-    #   deno test {{args}}
-    @echo "Tests passed!"
+    idris2 --typecheck abi.ipkg
+    cd src/interface/ffi && zig build test {{args}}
+    bash tests/check-examples.sh
+    bash tests/aspect_tests.sh
+    bash scripts/check-root-shape.sh .
+    bash tests/workflows/validate_workflows_test.sh
 
 # Run tests with verbose output
 test-verbose:
-    @echo "Running tests (verbose)..."
-    # TODO: Replace with verbose test command
+    idris2 --typecheck abi.ipkg
+    cd src/interface/ffi && zig build test --summary all
+    bash tests/check-examples.sh
+    bash tests/aspect_tests.sh
+    bash scripts/check-root-shape.sh .
+    bash tests/workflows/validate_workflows_test.sh
 
 # Smoke test
 test-smoke:
-    @echo "Smoke test..."
-    # TODO: Add basic sanity checks
+    idris2 --typecheck abi.ipkg
+    cd src/interface/ffi && zig build test
 
 # Run end-to-end tests (full pipeline: build → run → verify)
 e2e:
-    @echo "Running E2E tests..."
-    # TODO: Replace with your E2E test command. Examples:
-    #   bash tests/e2e.sh                    # Shell-based E2E
-    #   npx playwright test                  # Browser E2E
-    #   mix test test/integration/e2e_test.exs  # Elixir E2E
-    #   cargo test --test end_to_end         # Rust E2E
-    @echo "E2E tests passed!"
+    @echo "No Haec end-to-end suite is implemented yet." >&2
+    @exit 2
 
 # Run aspect tests (cross-cutting concern validation)
 aspect:
-    @echo "Running aspect tests..."
-    # TODO: Replace with your aspect test command. Examples:
-    #   bash tests/aspect_tests.sh           # Shell-based aspect tests
-    #   cargo test --test aspects             # Rust aspect tests
-    # Aspect tests validate architectural invariants:
-    #   - Thread safety (mutex in FFI modules)
-    #   - ABI/FFI contract (declarations match exports)
-    #   - SPDX compliance (all files have license headers)
-    #   - No dangerous patterns (believe_me, assert_total, etc.)
-    @echo "Aspect tests passed!"
+    bash tests/aspect_tests.sh
 
 # Run benchmarks (performance regression detection)
 bench:
@@ -227,31 +203,16 @@ fix: fmt
 
 # Format all source files [reversible: git checkout]
 fmt:
-    @echo "Formatting source files..."
-    # TODO: Replace with your formatter
-    # Examples:
-    #   cargo fmt
-    #   mix format
-    #   gleam format
-    #   deno fmt
+    zig fmt src/interface/ffi/build.zig src/interface/ffi/src/main.zig src/interface/ffi/test/integration_test.zig
 
 # Check formatting without changes
 fmt-check:
-    @echo "Checking formatting..."
-    # TODO: Replace with your format check
-    # Examples:
-    #   cargo fmt --check
-    #   mix format --check-formatted
-    #   gleam format --check
+    zig fmt --check src/interface/ffi/build.zig src/interface/ffi/src/main.zig src/interface/ffi/test/integration_test.zig
 
 # Run linter
 lint:
-    @echo "Linting source files..."
-    # TODO: Replace with your linter
-    # Examples:
-    #   cargo clippy -- -D warnings
-    #   mix credo --strict
-    #   gleam check
+    find tests scripts -type f -name '*.sh' -print0 | xargs -0 -r bash -n
+    bash tests/aspect_tests.sh
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # RUN & EXECUTE

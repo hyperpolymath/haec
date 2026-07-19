@@ -2,7 +2,7 @@
 // Copyright (c) Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
 // HAEC FFI Implementation
 //
-// This module implements the C-compatible FFI declared in src/abi/Foreign.idr
+// This module implements the C-compatible FFI declared in src/interface/Abi/Foreign.idr
 // All types and layouts must match the Idris2 ABI definitions.
 //
 
@@ -34,17 +34,21 @@ pub const Result = enum(c_int) {
     ok = 0,
     @"error" = 1,
     invalid_param = 2,
-    out_of_memory = 3,
-    null_pointer = 4,
+    busy = 3,
 };
 
-/// Library handle (opaque to prevent direct access)
-pub const Handle = opaque {
-    // Internal state hidden from C
+/// Public C handle. Its representation is deliberately opaque to callers.
+pub const Handle = opaque {};
+
+/// Private state stored behind the opaque C handle.
+const HandleState = struct {
     allocator: std.mem.Allocator,
     initialized: bool,
-    // Add your fields here
 };
+
+fn stateFromHandle(handle: *Handle) *HandleState {
+    return @ptrCast(@alignCast(handle));
+}
 
 //==============================================================================
 // Library Lifecycle
@@ -52,33 +56,33 @@ pub const Handle = opaque {
 
 /// Initialize the library
 /// Returns a handle, or null on failure
-export fn haec_init() ?*Handle {
+pub export fn haec_init() ?*Handle {
     const allocator = std.heap.c_allocator;
 
-    const handle = allocator.create(Handle) catch {
+    const state = allocator.create(HandleState) catch {
         setError("Failed to allocate handle");
         return null;
     };
 
-    // Initialize handle
-    handle.* = .{
+    state.* = .{
         .allocator = allocator,
         .initialized = true,
     };
 
     clearError();
-    return handle;
+    return @ptrCast(state);
 }
 
 /// Free the library handle
-export fn haec_free(handle: ?*Handle) void {
-    const h = handle orelse return;
-    const allocator = h.allocator;
+pub export fn haec_free(handle: ?*Handle) void {
+    const opaque_handle = handle orelse return;
+    const state = stateFromHandle(opaque_handle);
+    const allocator = state.allocator;
 
     // Clean up resources
-    h.initialized = false;
+    state.initialized = false;
 
-    allocator.destroy(h);
+    allocator.destroy(state);
     clearError();
 }
 
@@ -87,13 +91,14 @@ export fn haec_free(handle: ?*Handle) void {
 //==============================================================================
 
 /// Process data (example operation)
-export fn haec_process(handle: ?*Handle, input: u32) Result {
-    const h = handle orelse {
+pub export fn haec_process(handle: ?*Handle, input: u32) Result {
+    const opaque_handle = handle orelse {
         setError("Null handle");
-        return .null_pointer;
+        return .invalid_param;
     };
+    const state = stateFromHandle(opaque_handle);
 
-    if (!h.initialized) {
+    if (!state.initialized) {
         setError("Handle not initialized");
         return .@"error";
     }
@@ -111,19 +116,20 @@ export fn haec_process(handle: ?*Handle, input: u32) Result {
 
 /// Get a string result (example)
 /// Caller must free the returned string
-export fn haec_get_string(handle: ?*Handle) ?[*:0]const u8 {
-    const h = handle orelse {
+pub export fn haec_get_string(handle: ?*Handle) ?[*:0]const u8 {
+    const opaque_handle = handle orelse {
         setError("Null handle");
         return null;
     };
+    const state = stateFromHandle(opaque_handle);
 
-    if (!h.initialized) {
+    if (!state.initialized) {
         setError("Handle not initialized");
         return null;
     }
 
     // Example: allocate and return a string
-    const result = h.allocator.dupeZ(u8, "Example result") catch {
+    const result = state.allocator.dupeZ(u8, "Example result") catch {
         setError("Failed to allocate string");
         return null;
     };
@@ -133,7 +139,7 @@ export fn haec_get_string(handle: ?*Handle) ?[*:0]const u8 {
 }
 
 /// Free a string allocated by the library
-export fn haec_free_string(str: ?[*:0]const u8) void {
+pub export fn haec_free_string(str: ?[*:0]const u8) void {
     const s = str orelse return;
     const allocator = std.heap.c_allocator;
 
@@ -146,22 +152,23 @@ export fn haec_free_string(str: ?[*:0]const u8) void {
 //==============================================================================
 
 /// Process an array of data
-export fn haec_process_array(
+pub export fn haec_process_array(
     handle: ?*Handle,
     buffer: ?[*]const u8,
     len: u32,
 ) Result {
-    const h = handle orelse {
+    const opaque_handle = handle orelse {
         setError("Null handle");
-        return .null_pointer;
+        return .invalid_param;
     };
+    const state = stateFromHandle(opaque_handle);
 
     const buf = buffer orelse {
         setError("Null buffer");
-        return .null_pointer;
+        return .invalid_param;
     };
 
-    if (!h.initialized) {
+    if (!state.initialized) {
         setError("Handle not initialized");
         return .@"error";
     }
@@ -181,11 +188,11 @@ export fn haec_process_array(
 //==============================================================================
 
 /// Get the last error message
-/// Returns null if no error
-export fn haec_last_error() ?[*:0]const u8 {
+/// Returns null if no error. Free a non-null result with haec_free_string.
+pub export fn haec_last_error() ?[*:0]const u8 {
     const err = last_error orelse return null;
 
-    // Return C string (static storage, no need to free)
+    // Return caller-owned C storage; release it with haec_free_string.
     const allocator = std.heap.c_allocator;
     const c_str = allocator.dupeZ(u8, err) catch return null;
     return c_str.ptr;
@@ -196,12 +203,12 @@ export fn haec_last_error() ?[*:0]const u8 {
 //==============================================================================
 
 /// Get the library version
-export fn haec_version() [*:0]const u8 {
+pub export fn haec_version() [*:0]const u8 {
     return VERSION.ptr;
 }
 
 /// Get build information
-export fn haec_build_info() [*:0]const u8 {
+pub export fn haec_build_info() [*:0]const u8 {
     return BUILD_INFO.ptr;
 }
 
@@ -210,24 +217,25 @@ export fn haec_build_info() [*:0]const u8 {
 //==============================================================================
 
 /// Callback function type (C ABI)
-pub const Callback = *const fn (u64, u32) callconv(.C) u32;
+pub const Callback = *const fn (u64, u32) callconv(.c) u32;
 
 /// Register a callback
-export fn haec_register_callback(
+pub export fn haec_register_callback(
     handle: ?*Handle,
     callback: ?Callback,
 ) Result {
-    const h = handle orelse {
+    const opaque_handle = handle orelse {
         setError("Null handle");
-        return .null_pointer;
+        return .invalid_param;
     };
+    const state = stateFromHandle(opaque_handle);
 
     const cb = callback orelse {
         setError("Null callback");
-        return .null_pointer;
+        return .invalid_param;
     };
 
-    if (!h.initialized) {
+    if (!state.initialized) {
         setError("Handle not initialized");
         return .@"error";
     }
@@ -244,9 +252,10 @@ export fn haec_register_callback(
 //==============================================================================
 
 /// Check if handle is initialized
-export fn haec_is_initialized(handle: ?*Handle) u32 {
-    const h = handle orelse return 0;
-    return if (h.initialized) 1 else 0;
+pub export fn haec_is_initialized(handle: ?*Handle) u32 {
+    const opaque_handle = handle orelse return 0;
+    const state = stateFromHandle(opaque_handle);
+    return if (state.initialized) 1 else 0;
 }
 
 //==============================================================================
@@ -262,10 +271,11 @@ test "lifecycle" {
 
 test "error handling" {
     const result = haec_process(null, 0);
-    try std.testing.expectEqual(Result.null_pointer, result);
+    try std.testing.expectEqual(Result.invalid_param, result);
 
-    const err = haec_last_error();
-    try std.testing.expect(err != null);
+    const err = haec_last_error() orelse return error.MissingError;
+    defer haec_free_string(err);
+    try std.testing.expectEqualStrings("Null handle", std.mem.span(err));
 }
 
 test "version" {

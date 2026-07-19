@@ -17,11 +17,11 @@ import Abi.Layout
 --------------------------------------------------------------------------------
 
 ||| Raw FFI call to initialize the library
-%foreign "C:rsr_init,librsr"
+%foreign "C:haec_init,libhaec"
 prim__init : PrimIO Bits64
 
 ||| Raw FFI call to free library resources
-%foreign "C:rsr_free,librsr"
+%foreign "C:haec_free,libhaec"
 prim__free : Bits64 -> PrimIO ()
 
 ||| Safe wrapper for initialization
@@ -41,25 +41,31 @@ free h = primIO (prim__free h.ptr)
 --------------------------------------------------------------------------------
 
 ||| Raw FFI call for main processing
-%foreign "C:rsr_process,librsr"
+%foreign "C:haec_process,libhaec"
 prim__process : Bits64 -> Bits32 -> PrimIO Bits32
 
 ||| Safe wrapper with error handling
+resultFromCode : Bits32 -> Result
+resultFromCode 0 = Ok
+resultFromCode 1 = Error
+resultFromCode 2 = InvalidParam
+resultFromCode 3 = Busy
+resultFromCode _ = Error
+
+||| Run the main operation and decode the C result code.
 export
-process : Handle -> Bits32 -> IO (Either Result Bits32)
+process : Handle -> Bits32 -> IO Result
 process h input = do
   result <- primIO (prim__process h.ptr input)
-  if result == 0
-    then pure (Left Error)
-    else pure (Right result)
+  pure (resultFromCode result)
 
 --------------------------------------------------------------------------------
 -- Status and Metrics
 --------------------------------------------------------------------------------
 
 ||| Get the current error description from the library
-%foreign "C:rsr_get_error,librsr"
-prim__getError : Bits64 -> PrimIO (Ptr String)
+%foreign "C:haec_last_error,libhaec"
+prim__getError : PrimIO (Ptr String)
 
 ||| Detailed error string helper
 export
@@ -80,4 +86,4 @@ errorDescription Busy = "Library is busy"
 ||| 4. FFI boundary uses explicitly tagged types from Abi.Types.
 public export
 abiSafetyGuarantees : String
-abiSafetyGuarantees = "RSR-Template ABI: 4 proven safety properties for FFI integration"
+abiSafetyGuarantees = "Haec ABI: 4 proven safety properties for FFI integration"
