@@ -24,7 +24,7 @@ jobs:
     timeout-minutes: 20
     steps:
       - name: Checkout repository
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Inventory dogfood formats
         id: inventory
@@ -61,7 +61,7 @@ jobs:
         id: k9
         if: steps.inventory.outputs.k9_count != '0'
         continue-on-error: true
-        uses: hyperpolymath/k9-validate-action@d0d9970fb08705c5a99df88af7b334b6a2682966 # comment-safe Nickel envelope
+        uses: hyperpolymath/k9-validate-action@bddcd9109ee96f9ea3fdb4bf51084fe9cd0909ce # main
         with:
           path: '.'
           strict: 'false'
