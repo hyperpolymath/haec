@@ -1,17 +1,9 @@
 # SPDX-License-Identifier: MPL-2.0
 name: "🔴 Gate: .well-known / RFC 9116"
 on:
-  push:
-    branches: [main, master]
-    paths:
-      - '.well-known/**'
-      - 'security.txt'
-  pull_request:
-    paths:
-      - '.well-known/**'
   schedule:
     # Weekly expiry check
-    - cron: '0 9 * * *'
+    - cron: '23 9 * * 0'
   workflow_dispatch:
 permissions:
   contents: read
