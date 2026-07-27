@@ -1,26 +1,26 @@
 # SPDX-License-Identifier: MPL-2.0
 # Copyright (c) 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>
 #
-# STATE.a2ml — Project state checkpoint (META-TEMPLATE)
+# STATE.a2ml — Project state checkpoint for Haec.
 #
-# This is the STATE file for rsr-template-repo itself.
-# When consumed by a new project, replace {{PLACEHOLDER}} tokens
-# and customize sections below for the target project.
+# Instantiated from the rsr-template-repo meta-template. Identity and
+# project-context below describe Haec; sections further down are still
+# inherited from the template and need review (see NOTE, bottom).
 
 [metadata]
-project = "rsr-template-repo"
-version = "0.2.0"
+project = "haec"
+version = "0.1.0"
 last-updated = "2026-02-28"
 status = "active"  # active | paused | archived
 
 [project-context]
-name = "rsr-template-repo"
-purpose = "Canonical RSR-compliant repository template providing scaffolding for all hyperpolymath projects — including CI/CD, AI manifests, ABI/FFI standards, container ecosystem, and governance infrastructure."
-completion-percentage = 95
+name = "Haec"
+purpose = "A Turing-complete language whose type discipline is trope-particularity: every operation over a property-instance carries a loss-shape grade, emitted as Trope IR for a separate, language-independent tropechecker to verdict."
+completion-percentage = 10  # rough: design stage, see README status '0.1 (design)'
 
 [position]
-phase = "maintenance"      # design | implementation | testing | maintenance | archived
-maturity = "production"    # experimental | alpha | beta | production | lts
+phase = "design"           # design | implementation | testing | maintenance | archived
+maturity = "experimental"  # experimental | alpha | beta | production | lts
 
 [route-to-mvp]
 milestones = [
@@ -58,7 +58,7 @@ part-of = ["RSR Framework", "stapeln ecosystem"]
 depends-on = ["stapeln", "selur-compose", "cerro-torre", "svalinn", "vordr", "k9-svc"]
 
 # ---------------------------------------------------------------------------
-# NOTE FOR CONSUMERS: When using this template to create a new repo, reset
-# the fields above to your project's values and replace all {{PLACEHOLDER}}
-# tokens. The milestones above describe the TEMPLATE's evolution, not yours.
+# NOTE: the milestones and depends-on above are still the meta-template's,
+# not Haec's, and are pending a rewrite. Identity, purpose, phase and
+# maturity have been corrected to describe this project.
 # ---------------------------------------------------------------------------

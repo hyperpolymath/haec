@@ -48,23 +48,65 @@ jobs:
             echo "::warning::Found $config_count config files but no K9 contracts"
           fi
 
-      - name: Validate A2ML manifests
+      # hyperpolymath/a2ml-validate-action and hyperpolymath/k9-validate-action
+      # do not exist — both 404. The steps therefore failed at "Set up job" on
+      # every push, and an unresolvable action also breaks Dependabot's
+      # github_actions updater. Validated inline until those are published.
+      #
+      # Scope is deliberately limited and stated honestly: these assert the
+      # file-level envelope contract (encoding, non-emptiness, SPDX header, and
+      # the K9 magic first line). They do NOT parse the A2ML grammar or
+      # typecheck Nickel — that still needs the real validators.
+      - name: Validate A2ML manifest envelopes
         id: a2ml
         if: steps.inventory.outputs.a2ml_count != '0'
-        continue-on-error: true
-        uses: hyperpolymath/a2ml-validate-action@05bcb78917c09702e90ed18004298a6728753914 # main
-        with:
-          path: '.'
-          strict: 'false'
+        shell: bash
+        run: |
+          set -euo pipefail
+          fail=0
+          while IFS= read -r -d '' f; do
+            if [ ! -s "$f" ]; then
+              echo "::error file=$f::empty A2ML manifest"; fail=1; continue
+            fi
+            if ! iconv -f UTF-8 -t UTF-8 "$f" >/dev/null 2>&1; then
+              echo "::error file=$f::not valid UTF-8"; fail=1; continue
+            fi
+            if ! grep -qE 'SPDX-License-Identifier:' "$f"; then
+              echo "::error file=$f::missing SPDX-License-Identifier header"; fail=1
+            fi
+          done < <(find . -name '*.a2ml' -not -path './.git/*' -print0)
+          [ "$fail" -eq 0 ] || { echo "::error::A2ML envelope check failed"; exit 1; }
+          echo "A2ML envelope check: OK"
 
-      - name: Validate K9 contracts
+      - name: Validate K9 contract envelopes
         id: k9
         if: steps.inventory.outputs.k9_count != '0'
-        continue-on-error: true
-        uses: hyperpolymath/k9-validate-action@bddcd9109ee96f9ea3fdb4bf51084fe9cd0909ce # main
-        with:
-          path: '.'
-          strict: 'false'
+        shell: bash
+        run: |
+          set -euo pipefail
+          fail=0
+          while IFS= read -r -d '' f; do
+            if [ ! -s "$f" ]; then
+              echo "::error file=$f::empty K9 contract"; fail=1; continue
+            fi
+            if ! iconv -f UTF-8 -t UTF-8 "$f" >/dev/null 2>&1; then
+              echo "::error file=$f::not valid UTF-8"; fail=1; continue
+            fi
+            first=$(head -1 "$f")
+            case "$f" in
+              # .k9.ncl must comment the magic so `nickel typecheck` still parses.
+              *.k9.ncl) want='# K9!' ;;
+              *)        want='K9!'  ;;
+            esac
+            if [ "$first" != "$want" ]; then
+              echo "::error file=$f::first line must be '$want' (found: '$first')"; fail=1
+            fi
+            if ! grep -qE 'SPDX-License-Identifier:' "$f"; then
+              echo "::error file=$f::missing SPDX-License-Identifier header"; fail=1
+            fi
+          done < <(find . \( -name '*.k9' -o -name '*.k9.ncl' \) -not -path './.git/*' -print0)
+          [ "$fail" -eq 0 ] || { echo "::error::K9 envelope check failed"; exit 1; }
+          echo "K9 envelope check: OK"
 
       - name: Scan for invisible characters
         id: empty_lint

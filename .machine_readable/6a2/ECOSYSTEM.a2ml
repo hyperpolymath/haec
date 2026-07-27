@@ -1,23 +1,21 @@
 # SPDX-License-Identifier: MPL-2.0
-# ECOSYSTEM.a2ml — Ecosystem position (META-TEMPLATE)
+# ECOSYSTEM.a2ml — Ecosystem position for Haec.
 #
-# This is the ECOSYSTEM file for rsr-template-repo itself. It records the
-# TEMPLATE's own position in the estate. When consumed by a new project,
-# replace these fields with the target project's ecosystem position and
-# related projects (see the NOTE FOR CONSUMERS at the bottom).
+# Instantiated from the rsr-template-repo meta-template; the fields below
+# describe Haec's own position in the estate.
 
 [metadata]
-project = "rsr-template-repo"
+project = "haec"
 ecosystem = "hyperpolymath"
 
 [position]
-type = "repository-template"
-purpose = "Canonical RSR-compliant repository template: scaffolding (CI/CD, AI manifests, ABI/FFI standards, container ecosystem, governance) that new hyperpolymath projects are instantiated from."
+type = "language"
+purpose = "Writes and type-checks Haec programs and emits Trope IR. Haec is deliberately not the tropechecker (trope-checker) and not the vocabulary (trope-particularity-workbench)."
 
 [pipeline]
-position = "foundation"
-chain = "standards → rsr-template-repo → (every estate repo)"
-notes = "rsr-template-repo turns the RSR standard into runnable scaffolding. New repos are created from it via `just init`, which substitutes the {{PLACEHOLDER}} tokens."
+position = "producer"
+chain = "trope-particularity-workbench (vocabulary) → haec (emits Trope IR) → trope-checker (verdict)"
+notes = "Haec produces a record of graded effects; the checker consumes that IR and returns a verdict against each consumer's declared use-model. The checker never executes a Haec program, so Rice's theorem is no obstacle: an unbounded lossy loop simply gets an honest top grade."
 coordination = "standards"
 
 [related-projects]
