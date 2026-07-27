@@ -20,7 +20,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     container:
-      # Idris 2 0.7.0, pinned by immutable image digest.
+      # Idris 2 0.8.0, pinned by immutable image digest.
+      # The digest is the authority; keep the version note in step with it.
       image: ghcr.io/stefan-hoeck/idris2-pack@sha256:de9781906050dc44704ec6de0108c86f899ef17b2642932b79e00245d613b8ad
     steps:
       - name: Checkout
@@ -54,8 +55,8 @@ jobs:
           ver="$(idris2 --version)"
           echo "idris2 --version -> ${ver}"
           case "$ver" in
-            *"0.7.0"*) ;;
-            *) echo "::error::expected Idris 2 0.7.0, got: ${ver}"; exit 1 ;;
+            *"0.8.0"*) ;;
+            *) echo "::error::expected Idris 2 0.8.0, got: ${ver}"; exit 1 ;;
           esac
           idris2 --typecheck abi.ipkg
 
