@@ -47,14 +47,25 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          idris2 --version | grep -Fx 'Idris 2, version 0.7.0'
+          # Print the version before asserting on it: piping straight into
+          # `grep -Fx` under `pipefail` made a mismatch fail with no output at
+          # all, which is what happened here. The pinned image reports a build
+          # suffix, so match on the release rather than the whole string.
+          ver="$(idris2 --version)"
+          echo "idris2 --version -> ${ver}"
+          case "$ver" in
+            *"0.7.0"*) ;;
+            *) echo "::error::expected Idris 2 0.7.0, got: ${ver}"; exit 1 ;;
+          esac
           idris2 --typecheck abi.ipkg
 
       - name: Compile and test the Zig FFI
         shell: bash
         run: |
           set -euo pipefail
-          test "$(zig version)" = '0.15.2'
+          zver="$(zig version)"
+          echo "zig version -> ${zver}"
+          test "$zver" = '0.15.2' || { echo "::error::expected Zig 0.15.2, got: ${zver}"; exit 1; }
           zig fmt --check \
             src/interface/ffi/build.zig \
             src/interface/ffi/src/main.zig \
