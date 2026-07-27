@@ -34,7 +34,13 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          idris2 --version | grep -Fx 'Idris 2, version 0.7.0'
+          # Same fix as ci.yml: never assert through a pipe under pipefail.
+          ver="$(idris2 --version)"
+          echo "idris2 --version -> ${ver}"
+          case "$ver" in
+            *"0.8.0"*) ;;
+            *) echo "::error::expected Idris 2 0.8.0, got: ${ver}"; exit 1 ;;
+          esac
           idris2 --typecheck abi.ipkg
           (
             cd src/interface/ffi
