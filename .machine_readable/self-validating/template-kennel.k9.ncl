@@ -1,4 +1,4 @@
-K9!
+# K9!
 # SPDX-License-Identifier: MPL-2.0
 # K9 Kennel-level template: Pure data configuration
 # Security Level: Kennel (data-only, no execution)

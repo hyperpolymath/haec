@@ -40,17 +40,38 @@ else
   echo -e "${Y}note${O} sibling trope-checker not checked out; skipping schema-drift guard"
 fi
 
-# 4. full round-trip: verdicts via the sibling Idris2 checker, if built.
-BIN="$SIB/src/idris2/build/exec/tropecheck"
-if [ -x "$BIN" ]; then
+# 4. full round-trip: verdicts via the reference checker.
+#
+# TROPECHECK_BIN names the binary (same variable trope-checker's own conformance
+# runner honours); it defaults to the sibling Idris2 reference build. Set
+# TROPECHECK_REQUIRED=1 — as CI does — to make a missing binary a hard failure
+# rather than a skip: a round-trip that silently does not run is a fake gate.
+BIN="${TROPECHECK_BIN:-$SIB/src/idris2/build/exec/tropecheck}"
+if [ ! -x "$BIN" ] && [ "${TROPECHECK_REQUIRED:-0}" = "1" ]; then
+  echo -e "${R}FAIL${O} TROPECHECK_REQUIRED=1 but no checker binary at $BIN"
+  echo "      build it with: idris2 --install verification/proofs/idris2/trope.ipkg"
+  echo "                     idris2 --build   src/idris2/tropecheck.ipkg   (Idris2 0.8.0)"
+  fail=1
+elif [ -x "$BIN" ]; then
   while read -r e; do
     ir=$(jq -r '.ir' <<<"$e"); exp=$(jq -r '.expect' <<<"$e")
-    got=$("$BIN" "$EX/$ir" | awk '{print $1}')
-    if [ "$got" = "$exp" ]; then echo -e "${G}ok${O}   round-trip $ir → $got"
-    else echo -e "${R}FAIL${O} round-trip $ir: got $got, expected $exp"; fail=1; fi
+    # the checker exits non-zero on p-insufficient — that is a verdict, not an
+    # error, so do not let it abort the loop.
+    out=$("$BIN" "$EX/$ir" || true)
+    got=$(awk '{print $1}' <<<"$out")
+    wexp=$(jq -r '.witness // [] | join("/")' <<<"$e")
+    ok=1
+    [ "$got" = "$exp" ] || ok=0
+    if [ -n "$wexp" ]; then
+      gw=$(grep -o 'witness=[^[:space:]]*' <<<"$out" | cut -d= -f2)
+      gc=$(grep -o 'coord=[^[:space:]]*'   <<<"$out" | cut -d= -f2)
+      [ "$gw/$gc" = "$wexp" ] || ok=0
+    fi
+    if [ "$ok" = 1 ]; then echo -e "${G}ok${O}   round-trip $ir → $got${wexp:+ (witness $wexp)}"
+    else echo -e "${R}FAIL${O} round-trip $ir: got '$out', expected $exp${wexp:+ witness $wexp}"; fail=1; fi
   done < <(jq -c '.examples[]' "$EX/EXAMPLES.json")
 else
-  echo -e "${Y}note${O} sibling tropecheck binary not built; skipping verdict round-trip (run 'just trope-build' in ../trope-checker)"
+  echo -e "${Y}note${O} no checker binary; skipping verdict round-trip (set TROPECHECK_BIN, or TROPECHECK_REQUIRED=1 to make this fatal)"
 fi
 
 if [ "$fail" = 0 ]; then echo -e "\n${G}examples: all lower to valid Trope IR${O}"; else echo -e "\n${R}examples: failures${O}"; fi
