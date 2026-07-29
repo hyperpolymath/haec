@@ -10,7 +10,11 @@
   "properties": {
     "$schema": { "type": "string" },
     "$comment": { "type": "string" },
-    "version": { "type": "string", "const": "0.1" },
+    "version": {
+      "type": "string",
+      "enum": ["0.1", "0.2"],
+      "$comment": "0.2 is current (R-2026-07-07, ADR 0004: A1 two-sided deceptive zeros, A2 chain retention order, A3 Attenuated(0)->Present normalization at ingest — verdict semantics changed, wire format unchanged). 0.1 documents remain accepted and are normalized and graded identically under 0.2 semantics."
+    },
     "profile": {
       "type": "string",
       "const": "prevent",
@@ -31,7 +35,7 @@
     "fieldName": { "enum": ["quality", "bearer", "context", "record"] },
 
     "delta": {
-      "$comment": "A fidelity element of N union {inf, top}. Finite delta is tropical (min-plus) quantified loss; inf is total quantified loss; top is loss of unknown amount.",
+      "$comment": "A fidelity element of N union {inf, top}. Finite delta is tropical (min-plus) quantified loss; inf is total quantified loss; top is loss of unknown amount. Attenuated(0) is wire-legal and is normalized to Present at IR ingest (R-2026-07-07-03, A3): validators rewrite it before grading.",
       "oneOf": [
         { "type": "integer", "minimum": 0 },
         { "type": "string", "enum": ["inf", "top"] }

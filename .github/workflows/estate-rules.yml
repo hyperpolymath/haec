@@ -4,7 +4,9 @@
 # Estate Rules — enforces hyperpolymath estate-wide conventions:
 #   * root shape (allowlist of permitted root entries)
 #   * AsciiDoc-by-default (no .md files under docs/)
-#   * zig is banned (no zig scaffolding or references)
+#
+# Haec intentionally implements its FFI in Zig, so the generic estate-wide
+# "no Zig" migration rule is not applicable to this repository.
 #
 # Each rule is enforced by an executable check script under scripts/. Failures
 # are surfaced as workflow errors so the rule can't silently regress.
@@ -16,16 +18,17 @@ on:
   pull_request:
 permissions:
   contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 jobs:
   estate-rules:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - name: Checkout
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Root shape allowlist
         run: bash scripts/check-root-shape.sh .
       - name: AsciiDoc by default (no .md under docs/)
         run: bash scripts/check-no-md-in-docs.sh .
-      - name: No zig references
-        run: bash scripts/check-no-vlang.sh .
