@@ -1,5 +1,5 @@
 // SPDX-FileCopyrightText: © 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>
-// SPDX-License-Identifier: MPL-2.0
+// SPDX-License-Identifier: CC-BY-SA-4.0
 // SPDX-License-Identifier: CC-BY-SA-4.0
 = Haec elaboration — surface construct → Trope IR edge
 :revdate: 2026-06-22

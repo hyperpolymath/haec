@@ -1,4 +1,4 @@
-K9!
+# K9!
 # SPDX-License-Identifier: MPL-2.0
 # K9 Hunt-level template: Full execution with Just recipes
 # Security Level: Hunt (full system access)

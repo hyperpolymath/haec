@@ -1,118 +1,84 @@
-// SPDX-License-Identifier: MPL-2.0
+// SPDX-License-Identifier: CC-BY-SA-4.0
 // Copyright (c) Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
-= TEST-NEEDS: rsr-template-repo
+= TEST-NEEDS: Haec
+:toc:
 
-== CRG Grade: C — ACHIEVED 2026-04-04
+== Current state (updated 2026-07-19)
 
-== Current State (Updated 2026-04-04)
-
-[cols="2,1,4", options="header"]
+[cols="2,1,4",options="header"]
 |===
-| Category | Count | Details
+|Category |Count |Details
 
-| *Source modules* | 6 | 3 Idris2 ABI (Foreign, Layout, Types), 2 Zig FFI (build, main), 1 Zig integration test template
-| *Unit tests* | 0 | None in main source (inline tests in main.zig)
-| *Integration tests* | 1 | `test/integration_test.zig` (documented template, 1 placeholder test)
-| *E2E tests* | 1 | `tests/e2e/template_instantiation_test.sh` (full instantiation + validation)
-| *Workflow tests* | 1 | `tests/workflows/validate_workflows_test.sh` (21 workflows validated)
-| *Validation tests* | 1 | `scripts/validate-template.sh` (8-phase comprehensive validation)
-| *Benchmarks* | 5 | `benches/template_bench.sh` (validation, Zig build, tests, workflows, instantiation)
-| *Fuzz tests* | 0 | `README.adoc` scaffold with harness instructions
+|Idris2 modules
+|3
+|`Abi.Types`, `Abi.Layout`, and `Abi.Foreign`, typechecked together through `abi.ipkg`.
+
+|Zig unit tests
+|3
+|Lifecycle, error handling, and version tests embedded in `src/interface/ffi/src/main.zig`.
+
+|Zig integration tests
+|5
+|Lifecycle, processing, pointer validation, allocated strings, and version/build information exercised through the linked C ABI.
+
+|Repository contract suites
+|3
+|Example/IR structure, cross-cutting aspects, and root-shape validation.
+
+|End-to-end tests
+|0
+|The historical template-instantiation script is not a Haec E2E suite and remains non-gating until repaired or replaced.
+
+|Fuzz tests
+|0
+|`tests/fuzz/README.adoc` contains harness guidance only.
 |===
 
-== Completed Work (CRG C - Testing & Benchmarking)
+== Verified commands
 
-=== Template Validation Script ✅
-
-* [x] `scripts/validate-template.sh` — 8-phase validation
-** Phase 1: Core repository structure (root files, directories)
-** Phase 2: Machine-readable metadata (`.machine_readable/`)
-** Phase 3: GitHub Actions workflows (17 required + all present)
-** Phase 4: Idris2 ABI and Zig FFI source files
-** Phase 5: Placeholder token replacement (skipped in template)
-** Phase 6: SPDX license headers (100% coverage, 6/6 files)
-** Phase 7: Build system verification (`zig build` + `idris2` syntax check)
-** Phase 8: Documentation requirements (TOPOLOGY, ABI-FFI-README, etc)
-* Status: *PASSING* (0 errors, 3 warnings about template placeholders)
-
-=== E2E Template Instantiation Test ✅
-
-* [x] `tests/e2e/template_instantiation_test.sh` — full workflow
-** Clones template to temp directory
-** Replaces all `{{PLACEHOLDER}}` tokens with test values
-** Validates resulting structure with `scripts/validate-template.sh`
-** Verifies Zig build works after instantiation
-** Checks no remaining placeholders
-** Cleans up temp directory
-* Status: *READY TO TEST* (can be verified by CI)
-
-=== Workflow Validation Test ✅
-
-* [x] `tests/workflows/validate_workflows_test.sh`
-** Validates all 21 workflows exist and have proper structure
-** Checks SPDX headers, `name` field
-** Verifies all 15 required workflows present
-* Status: *PASSING* (0 errors, 15/15 required workflows found)
-
-=== Zig FFI Tests ✅
-
-* [x] `src/interface/ffi/test/integration_test.zig` — template with examples
-** Converted from `haec` placeholders to "template" namespace
-** Added comprehensive comments for how to instantiate
-** Tests grouped by category (lifecycle, operations, strings, errors, version, memory safety, threading)
-** Compiles and passes placeholder test
-* Status: *PASSING* (1 test: `placeholder_test_implementation_required` passes)
-
-=== Benchmarks ✅
-
-* [x] `benches/template_bench.sh` — 5 benchmark suites
-** Validation script: ~5.8s average (3 runs)
-** Zig build: ~19ms (clean build)
-** Zig tests: ~20ms
-** Workflow validation: ~117ms
-** Template instantiation: ~427ms
-* Formats: human, json, csv
-* Status: *PASSING* (all benchmarks execute)
-
-=== Build System ✅
-
-* [x] `src/interface/ffi/build.zig` — updated for Zig 0.15.2
-** Simplified to test-only configuration
-** Supports both unit tests and integration tests
-** Works with `zig build` without errors
-* Status: *PASSING* (builds successfully)
-
-== Test Results Summary
-
+[source,bash]
 ----
-Validation Script:    PASS (0 errors, 3 warnings)
-Workflow Validation:  PASS (21/21 workflows valid)
-Integration Tests:    PASS (1/1 placeholder test)
-E2E Instantiation:    READY (needs CI confirmation)
-Benchmarks:           PASS (5/5 benchmark suites)
-Build System:         PASS (zig build succeeds)
+idris2 --typecheck abi.ipkg
+cd src/interface/ffi
+zig build
+zig build test --summary all
 ----
 
-== CRG C Compliance
+With Idris2 0.7.0 and Zig 0.15.2, the build produces both static and shared
+`libhaec` artifacts and all eight Zig tests pass.
 
-* *Coverage*: 6/6 test categories (unit, integration, E2E, workflow, validation, benchmarks)
-* *Documentation*: All test files have SPDX headers + inline documentation
-* *Author Attribution*: Jonathan D.A. Jewell <6759885+hyperpolymath@users.noreply.github.com>
-* *License*: MPL-2.0 on all new files
-* *Automation*: All scripts executable + working
+From the repository root:
 
-== FLAGGED ISSUES - ALL RESOLVED
+[source,bash]
+----
+bash tests/check-examples.sh
+bash tests/aspect_tests.sh
+bash scripts/check-root-shape.sh .
+----
 
-* [.line-through]#*Template repo used by ALL new repos has 0 validation tests*# → FIXED: 4 test suites + validation script
-* [.line-through]#*fuzz/placeholder.txt*# → FIXED: replaced with `README.adoc` containing real harness instructions
-* [.line-through]#*No E2E tests for template instantiation*# → FIXED: full E2E test suite
-* [.line-through]#*Zig FFI integration tests are placeholders*# → FIXED: converted to documented template format
+`tests/check-examples.sh` currently verifies manifest/IR pairing and JSON shape.
+Its schema-drift and semantic round-trip portions run only when the sibling
+`trope-checker` repository and binary are available, so it must not be described
+as full E2E coverage.
 
-== Next Steps (Future Sessions)
+== CI status
 
-* [ ] Integrate test scripts into CI/CD workflows
-* [ ] Generate test coverage reports
-* [ ] Add more specialized benchmarks (memory, threading stress)
-* [ ] Document test instantiation patterns for new repos
+`.github/workflows/ci.yml` is the canonical, bounded core gate. It emits one
+stable `CI / required` context and runs Idris2 typechecking, Zig compilation and
+tests, shell syntax checks, example/IR structural checks, aspect checks, and the
+root-shape contract on one runner.
 
-== Priority: P0 (COMPLETE) ✅
+The former empty E2E workflow, no-op Rust wrapper, and placeholder quality
+workflow were removed during the 2026-07-19 consolidation. Domain-specific and
+security workflows remain separate until their stronger behavior has been
+absorbed into a tested aggregate.
+
+== Remaining test debt
+
+* Implement a real Haec end-to-end scenario across the Idris2-to-Zig boundary.
+* Build or fetch a pinned `trope-checker` in CI so schema drift and semantic
+  verdict round-trips cannot silently skip.
+* Repair `tests/e2e/template_instantiation_test.sh` before reusing it; it
+  currently contains an unbound variable and is template-oriented.
+* Add fuzz targets for the actual data-processing boundary.
+* Resolve the two Idris2 shadowing warnings before enabling `-Werror`.

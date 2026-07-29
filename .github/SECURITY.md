@@ -1,26 +1,8 @@
 <!--
-SPDX-License-Identifier: MPL-2.0
+SPDX-License-Identifier: CC-BY-SA-4.0
 Copyright (c) Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
 -->
 # Security Policy
-
-<!-- 
-============================================================================
-TEMPLATE INSTRUCTIONS (delete this block before publishing)
-============================================================================
-Replace all {{PLACEHOLDER}} values with your information:
-  Haec     - Your project name
-  hyperpolymath            - GitHub username or org (e.g., hyperpolymath)
-  haec             - Repository name
-  j.d.a.jewell@open.ac.uk   - Security contact email
-  {{PGP_FINGERPRINT}}  - Your PGP key fingerprint (40 chars, no spaces)
-  {{PGP_KEY_URL}}      - URL to your public PGP key
-  https://github.com/hyperpolymath/haec          - Your website/domain
-  2026     - Current year for copyright
-
-Optional: Remove sections that don't apply (e.g., PGP if you don't use it)
-============================================================================
--->
 
 We take security seriously. We appreciate your efforts to responsibly disclose vulnerabilities and will make every effort to acknowledge your contributions.
 
@@ -56,26 +38,16 @@ This method ensures:
 - Coordinated disclosure tooling
 - Automatic credit when the advisory is published
 
-### Alternative: Encrypted Email
+### Alternative: Email
 
 If you cannot use GitHub Security Advisories, you may email us directly:
 
 | | |
 |---|---|
 | **Email** | j.d.a.jewell@open.ac.uk |
-| **PGP Key** | [Download Public Key]({{PGP_KEY_URL}}) |
-| **Fingerprint** | `{{PGP_FINGERPRINT}}` |
 
-```bash
-# Import our PGP key
-curl -sSL {{PGP_KEY_URL}} | gpg --import
-
-# Verify fingerprint
-gpg --fingerprint j.d.a.jewell@open.ac.uk
-
-# Encrypt your report
-gpg --armor --encrypt --recipient j.d.a.jewell@open.ac.uk report.txt
-```
+No PGP key is published for this project. If you need to send an encrypted
+report, say so in a first plaintext message and a key will be exchanged.
 
 > **⚠️ Important:** Do not report security vulnerabilities through public GitHub issues, pull requests, discussions, or social media.
 
@@ -374,7 +346,6 @@ When using Haec, we recommend:
 
 ## Additional Resources
 
-- [Our PGP Public Key]({{PGP_KEY_URL}})
 - [Security Advisories](https://github.com/hyperpolymath/haec/security/advisories)
 - [Changelog](CHANGELOG.md)
 - [Contributing Guidelines](CONTRIBUTING.md)

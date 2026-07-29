@@ -9,6 +9,10 @@ on:
     branches: [main, master]
 permissions:
   contents: read
+  security-events: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 jobs:
   # ---------------------------------------------------------------------------
   # Job 1: panic-attack assail
@@ -19,7 +23,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Checkout repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
       - name: Install panic-attack (if available)
@@ -96,7 +100,7 @@ jobs:
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "Skipped: panic-attack not available in this environment." >> "$GITHUB_STEP_SUMMARY"
       - name: Upload panic-attack findings
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: panic-attack-findings
           path: panic-attack-findings.json
@@ -115,44 +119,47 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Checkout repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
       - name: Setup Elixir for Hypatia scanner
-        id: beam
-        continue-on-error: true
-        uses: erlef/setup-beam@e6d7c94229049569db56a7ad5a540c051a010af9 # v1.18.2
+        uses: erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124 # v1.18.2
         with:
           elixir-version: '1.19.4'
           otp-version: '28.3'
-      - name: Clone and build Hypatia
-        id: build
-        continue-on-error: true
+      - name: Fetch and build pinned Hypatia
+        env:
+          HYPATIA_COMMIT: 3d73b66d0f4ada3527b947ddb2c3b9f88d945d45
         run: |
-          git clone https://github.com/hyperpolymath/hypatia.git "$HOME/hypatia" 2>/dev/null || true
-          if [ -f "$HOME/hypatia/mix.exs" ]; then
-            cd "$HOME/hypatia"
-            # Build escript if neither hypatia nor hypatia-v2 exists
-            if [ ! -f hypatia ] && [ ! -f hypatia-v2 ]; then
-              mix deps.get
-              mix escript.build
-            fi
-            echo "ready=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "::notice::Hypatia scanner not available — skipping scan"
-            echo "ready=false" >> "$GITHUB_OUTPUT"
-          fi
+          set -euo pipefail
+          scanner_dir="${RUNNER_TEMP}/hypatia"
+          git init "$scanner_dir"
+          git -C "$scanner_dir" remote add origin https://github.com/hyperpolymath/hypatia.git
+          git -C "$scanner_dir" fetch --depth 1 origin "$HYPATIA_COMMIT"
+          git -C "$scanner_dir" checkout --detach FETCH_HEAD
+          test "$(git -C "$scanner_dir" rev-parse HEAD)" = "$HYPATIA_COMMIT"
+          (
+            cd "$scanner_dir"
+            mix deps.get
+            mix escript.build
+          )
       - name: Run Hypatia scan
         id: scan
-        if: steps.build.outputs.ready == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.HYPATIA_SCAN_PAT || secrets.GITHUB_TOKEN }}
         run: |
           set +e
-          HYPATIA_FORMAT=json "$HOME/hypatia/hypatia-cli.sh" scan . > hypatia-findings.json 2>&1
+          HYPATIA_FORMAT=json "${RUNNER_TEMP}/hypatia/hypatia-cli.sh" scan . --exit-zero > hypatia-findings.json
           HYP_EXIT=$?
           set -e
 
-          if [ ! -s hypatia-findings.json ] || ! jq empty hypatia-findings.json 2>/dev/null; then
-            echo "[]" > hypatia-findings.json
+          if [ "$HYP_EXIT" -ne 0 ]; then
+            echo "::error::Hypatia scanner execution failed with exit ${HYP_EXIT}"
+            exit "$HYP_EXIT"
+          fi
+          if [ ! -s hypatia-findings.json ] || ! jq -e 'type == "array"' hypatia-findings.json >/dev/null; then
+            echo "::error::Hypatia did not produce a valid JSON findings array"
+            exit 1
           fi
 
           TOTAL=$(jq '. | length' hypatia-findings.json 2>/dev/null || echo 0)
@@ -167,7 +174,6 @@ jobs:
           echo "medium=$MEDIUM" >> "$GITHUB_OUTPUT"
           echo "low=$LOW" >> "$GITHUB_OUTPUT"
       - name: Emit check annotations
-        if: steps.build.outputs.ready == 'true'
         run: |
           jq -r '.[] | select(.file != null) |
             if .severity == "critical" then
@@ -179,7 +185,6 @@ jobs:
             end
           ' hypatia-findings.json || true
       - name: Write step summary
-        if: steps.build.outputs.ready == 'true'
         run: |
           cat <<EOF >> "$GITHUB_STEP_SUMMARY"
           ## Hypatia Scan Results
@@ -192,21 +197,15 @@ jobs:
           | Low      | ${{ steps.scan.outputs.low }} |
           | **Total**| ${{ steps.scan.outputs.total }} |
           EOF
-      - name: Create stub findings (when Hypatia unavailable)
-        if: steps.build.outputs.ready != 'true'
-        run: |
-          echo "[]" > hypatia-findings.json
-          echo "## Hypatia Scan" >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "Skipped: Hypatia scanner not available in this environment." >> "$GITHUB_STEP_SUMMARY"
       - name: Upload hypatia findings
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: hypatia-findings
           path: hypatia-findings.json
           retention-days: 90
       - name: Fail on critical security findings
-        if: steps.build.outputs.ready == 'true' && steps.scan.outputs.critical > 0
+        if: steps.scan.outputs.critical > 0
         run: |
           echo "::error::Hypatia found ${{ steps.scan.outputs.critical }} critical security issue(s) — blocking merge"
           exit 1
@@ -219,7 +218,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Checkout repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
       - name: Install panic-attack (if available)
@@ -243,8 +242,12 @@ jobs:
           PB_EXIT=$?
           set -e
 
-          if [ ! -s bridge-report.json ] || ! jq empty bridge-report.json 2>/dev/null; then
-            echo '{"cves":[],"mitigated":0,"unmitigable":0,"concatenative":0,"informational":0}' > bridge-report.json
+          if [ ! -s bridge-report.json ] || ! jq -e 'type == "object"' bridge-report.json >/dev/null; then
+            echo "::error::Patch Bridge did not produce a valid JSON report"
+            exit 1
+          fi
+          if [ "$PB_EXIT" -ne 0 ]; then
+            echo "::warning::Patch Bridge exited ${PB_EXIT}; preserving its valid report for policy evaluation"
           fi
 
           UNMITIGABLE=$(jq '.unmitigable // 0' bridge-report.json)
@@ -256,6 +259,7 @@ jobs:
           echo "mitigated=$MITIGATED" >> "$GITHUB_OUTPUT"
           echo "concatenative=$CONCATENATIVE" >> "$GITHUB_OUTPUT"
           echo "informational=$INFORMATIONAL" >> "$GITHUB_OUTPUT"
+          echo "exit_code=$PB_EXIT" >> "$GITHUB_OUTPUT"
       - name: Write step summary
         if: steps.install.outputs.installed == 'true'
         run: |
@@ -281,7 +285,7 @@ jobs:
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "Skipped: panic-attack not available in this environment." >> "$GITHUB_STEP_SUMMARY"
       - name: Upload bridge report
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: bridge-report
           path: bridge-report.json
@@ -303,17 +307,17 @@ jobs:
     if: always()
     steps:
       - name: Download panic-attack findings
-        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v4
         with:
           name: panic-attack-findings
           path: findings/
       - name: Download hypatia findings
-        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v4
         with:
           name: hypatia-findings
           path: findings/
       - name: Download bridge report
-        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v4
         with:
           name: bridge-report
           path: findings/
@@ -373,7 +377,7 @@ jobs:
           echo "medium=$MEDIUM"     >> "$GITHUB_OUTPUT"
           echo "low=$LOW"           >> "$GITHUB_OUTPUT"
       - name: Upload unified findings (fleet scanner picks these up)
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: unified-findings
           path: findings/unified-findings.json
