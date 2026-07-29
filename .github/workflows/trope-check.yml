@@ -1,7 +1,12 @@
 # SPDX-License-Identifier: MPL-2.0
 # Copyright (c) 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>
 #
-# Haec: every example lowers to a well-formed Trope IR document (bash + jq, no Python).
+# Haec: every example lowers to a well-formed Trope IR document AND round-trips
+# through the reference tropechecker to its expected verdict and witness.
+#
+# The round-trip is the one seam joining the three repos — Haec emits IR, the
+# checker returns a verdict — so it is built and asserted here rather than
+# skipped. TROPECHECK_REQUIRED=1 makes a missing binary a hard failure.
 name: "🔴 Gate: Trope conformance"
 on:
   push:
@@ -10,10 +15,62 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 jobs:
   examples-lower-to-valid-ir:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # The reference checker is an Idris2 program whose verified core requires
+    # Idris 2 *0.8.0*: under 0.7.0, Trope/Fidelity.idr fails to parse at the
+    # lambda-impossible clause `No (\Refl impossible)`. Pinned by image digest.
+    container:
+      image: ghcr.io/stefan-hoeck/idris2-pack@sha256:de9781906050dc44704ec6de0108c86f899ef17b2642932b79e00245d613b8ad
     steps:
-      - uses: actions/checkout@v4
-      - name: Examples lower to valid Trope IR
+      - name: Checkout Haec
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: haec
+
+      # Checked out as a SIBLING of haec/ so tests/check-examples.sh finds it at
+      # $ROOT/../trope-checker — which also activates the schema drift guard.
+      - name: Checkout trope-checker (reference checker + canonical IR schema)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: hyperpolymath/trope-checker
+          ref: 69221ad6bec0c9286cb5c917edfad281e7e0089e # main @ 2026-07-28
+          path: trope-checker
+
+      # The pinned idris2-pack image is minimal and ships no jq, which both the
+      # test script and the conformance runner require.
+      - name: Install container prerequisites (jq)
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! command -v jq >/dev/null 2>&1; then
+            apt-get update -qq
+            apt-get install -y -qq --no-install-recommends jq
+          fi
+          jq --version
+          idris2 --version
+
+      # ADR 0002/0003: the Idris2 executable is the reference checker and reuses
+      # the *proved* verified core, so the thing that runs is the thing that is
+      # proved. Installing that core is therefore part of building the oracle.
+      - name: Build the Idris2 reference checker
+        shell: bash
+        working-directory: trope-checker
+        run: |
+          set -euo pipefail
+          idris2 --install verification/proofs/idris2/trope.ipkg
+          ( cd src/idris2 && idris2 --build tropecheck.ipkg )
+          test -x src/idris2/build/exec/tropecheck
+          echo "reference checker built"
+
+      - name: Examples lower to valid Trope IR, and round-trip to their verdicts
+        shell: bash
+        working-directory: haec
+        env:
+          TROPECHECK_REQUIRED: '1'
         run: bash tests/check-examples.sh

@@ -54,7 +54,7 @@ while IFS= read -r -d '' f; do
         warn "Missing SPDX header: $f"
         MISSING_SPDX=$((MISSING_SPDX + 1))
     fi
-done < <(find src/ -type f \( -name "*.rs" -o -name "*.zig" -o -name "*.res" -o -name "*.ex" -o -name "*.exs" -o -name "*.gleam" -o -name "*.idr" -o -name "*.sh" \) -print0 2>/dev/null)
+done < <(find src/ -type d -name '.zig-cache' -prune -o -type f \( -name "*.rs" -o -name "*.zig" -o -name "*.res" -o -name "*.ex" -o -name "*.exs" -o -name "*.gleam" -o -name "*.idr" -o -name "*.sh" \) -print0 2>/dev/null)
 
 if [ "$MISSING_SPDX" -eq 0 ]; then
     pass "All source files have SPDX headers"
@@ -68,7 +68,9 @@ fi
 bold "Aspect 2: Dangerous patterns"
 
 # Idris2 dangerous patterns
-DANGEROUS_IDRIS=$(grep -rn 'believe_me\|assert_total\|really_believe_me' src/abi/ 2>/dev/null | grep -v "^Binary" | grep -v "test" || true)
+DANGEROUS_IDRIS=$(grep -rn 'believe_me\|assert_total\|really_believe_me' src/interface/Abi/ verification/proofs/idris2/ 2>/dev/null \
+    | grep -vE '^[^:]+:[0-9]+:[[:space:]]*--' \
+    | grep -v "^Binary" | grep -v "test" || true)
 if [ -n "$DANGEROUS_IDRIS" ]; then
     fail "Dangerous Idris2 patterns found:"
     echo "$DANGEROUS_IDRIS" | head -5
@@ -76,8 +78,17 @@ else
     pass "No dangerous Idris2 patterns (believe_me, assert_total)"
 fi
 
-# Coq/Lean dangerous patterns
-DANGEROUS_PROOF=$(grep -rn '\bAdmitted\b\|\bsorry\b\|\bunsafeCoerce\b\|\bObj\.magic\b' src/ verification/ 2>/dev/null | grep -v "test" | grep -v "comment" || true)
+# Language-aware proof-hole checks. Broad text greps used to flag README prose
+# and comments that documented the banned words, producing a permanent false
+# positive instead of detecting executable proof holes.
+DANGEROUS_PROOF=$(
+    {
+        grep -rnE '^[[:space:]]*Admitted\.' verification/proofs/coq/ 2>/dev/null || true
+        grep -rnE '(^|[=:])[[:space:]]*sorry([[:space:]]|$)' verification/proofs/lean4/ 2>/dev/null || true
+        grep -rnE '\b(unsafeCoerce|Obj\.magic)\b' src/ verification/proofs/ \
+            --include='*.idr' --include='*.hs' --include='*.ml' 2>/dev/null || true
+    } | sort -u
+)
 if [ -n "$DANGEROUS_PROOF" ]; then
     fail "Dangerous proof patterns found:"
     echo "$DANGEROUS_PROOF" | head -5

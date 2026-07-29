@@ -1,4 +1,4 @@
-K9!
+# K9!
 # SPDX-License-Identifier: MPL-2.0
 # Example Yard-level K9 component: CI/CD configuration with validation
 # Security Level: Yard (Nickel evaluation, contract validation)
