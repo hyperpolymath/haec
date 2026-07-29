@@ -2,10 +2,9 @@
 # Instant Forge Sync - Triggers propagation to all forges on push/release
 name: "⚙ Auto: Instant sync"
 on:
-  push:
-    branches: [main, master]
-  release:
-    types: [published]
+  # Automatic propagation stays off until FARM_DISPATCH_TOKEN and a canary
+  # dispatch have been verified. This prevents one push becoming fleet fan-out.
+  workflow_dispatch:
 permissions:
   contents: read
 jobs:
