@@ -1,4 +1,4 @@
-K9!
+# K9!
 # SPDX-License-Identifier: MPL-2.0
 # Example Hunt-level K9 component: Repository setup automation
 # Security Level: Hunt (full execution with Just recipes)

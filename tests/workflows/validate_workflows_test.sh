@@ -81,7 +81,7 @@ while IFS= read -r workflow_file; do
 done < <(find "$WORKFLOWS_DIR" \( -name "*.yml" -o -name "*.yaml" \) 2>/dev/null | sort)
 
 #==============================================================================
-# TEST 2: REQUIRED WORKFLOWS
+# TEST 2: REQUIRED AND EXPECTED WORKFLOWS
 #==============================================================================
 
 echo ""
@@ -89,21 +89,26 @@ log_info "Checking for required workflows"
 echo ""
 
 REQUIRED_WORKFLOWS=(
-    "hypatia-scan.yml"
-    "codeql.yml"
-    "scorecard.yml"
-    "quality.yml"
-    "mirror.yml"
-    "instant-sync.yml"
-    "guix-nix-policy.yml"
-    "rsr-antipattern.yml"
-    "security-policy.yml"
-    "wellknown-enforcement.yml"
-    "workflow-linter.yml"
-    "npm-bun-blocker.yml"
-    "ts-blocker.yml"
-    "scorecard-enforcer.yml"
+    "ci.yml"
+    "dogfood-gate.yml"
+    "estate-rules.yml"
+    "governance.yml"
+    "openssf-compliance.yml"
+    "release.yml"
     "secret-scanner.yml"
+    "static-analysis-gate.yml"
+    "trope-check.yml"
+    "workflow-linter.yml"
+)
+
+EXPECTED_WORKFLOWS=(
+    "codeql.yml"
+    "guix-nix-policy.yml"
+    "instant-sync.yml"
+    "rhodibot.yml"
+    "scorecard.yml"
+    "ts-blocker.yml"
+    "wellknown-enforcement.yml"
 )
 
 FOUND_COUNT=0
@@ -112,14 +117,21 @@ for required in "${REQUIRED_WORKFLOWS[@]}"; do
         log_pass "Found: $required"
         FOUND_COUNT=$((FOUND_COUNT + 1))
     else
-        log_warning "Missing: $required"
-        WARNINGS=$((WARNINGS + 1))
+        log_error "Missing required workflow: $required"
     fi
 done
 
 echo ""
 echo "Found $FOUND_COUNT/${#REQUIRED_WORKFLOWS[@]} required workflows"
 echo ""
+
+for expected in "${EXPECTED_WORKFLOWS[@]}"; do
+    if [ -f "$WORKFLOWS_DIR/$expected" ]; then
+        log_pass "Found expected advisory/manual workflow: $expected"
+    else
+        log_warning "Missing expected advisory/manual workflow: $expected"
+    fi
+done
 
 #==============================================================================
 # SUMMARY
