@@ -20,23 +20,31 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     container:
-      # Idris 2 0.7.0, pinned by immutable image digest.
+      # Idris 2 0.8.0, pinned by immutable image digest.
+      # The digest is the authority; keep the version note in step with it.
       image: ghcr.io/stefan-hoeck/idris2-pack@sha256:de9781906050dc44704ec6de0108c86f899ef17b2642932b79e00245d613b8ad
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      # The pinned idris2-pack image ships no xz binary, so setup-zig's
-      # .tar.xz download fails with "tar (child): xz: Cannot exec".
-      - name: Install xz (needed to unpack the Zig tarball)
+      # The pinned idris2-pack image is minimal. Two things are missing:
+      #   xz — setup-zig's .tar.xz download dies with "tar: xz: Cannot exec"
+      #   jq — tests/check-examples.sh exits 2 with "jq is required", so the
+      #        Trope IR conformance test never actually ran in CI
+      - name: Install container prerequisites (xz, jq)
         shell: bash
         run: |
           set -euo pipefail
-          if ! command -v xz >/dev/null 2>&1; then
+          missing=()
+          command -v xz >/dev/null 2>&1 || missing+=(xz-utils)
+          command -v jq >/dev/null 2>&1 || missing+=(jq)
+          if [ "${#missing[@]}" -gt 0 ]; then
+            echo "installing: ${missing[*]}"
             apt-get update -qq
-            apt-get install -y -qq --no-install-recommends xz-utils
+            apt-get install -y -qq --no-install-recommends "${missing[@]}"
           fi
           xz --version | head -1
+          jq --version
 
       - name: Set up Zig
         uses: goto-bus-stop/setup-zig@abea47f85e598557f500fa1fd2ab7464fcb39406 # v2.2.1
@@ -47,14 +55,25 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          idris2 --version | grep -Fx 'Idris 2, version 0.7.0'
+          # Print the version before asserting on it: piping straight into
+          # `grep -Fx` under `pipefail` made a mismatch fail with no output at
+          # all, which is what happened here. The pinned image reports a build
+          # suffix, so match on the release rather than the whole string.
+          ver="$(idris2 --version)"
+          echo "idris2 --version -> ${ver}"
+          case "$ver" in
+            *"0.8.0"*) ;;
+            *) echo "::error::expected Idris 2 0.8.0, got: ${ver}"; exit 1 ;;
+          esac
           idris2 --typecheck abi.ipkg
 
       - name: Compile and test the Zig FFI
         shell: bash
         run: |
           set -euo pipefail
-          test "$(zig version)" = '0.15.2'
+          zver="$(zig version)"
+          echo "zig version -> ${zver}"
+          test "$zver" = '0.15.2' || { echo "::error::expected Zig 0.15.2, got: ${zver}"; exit 1; }
           zig fmt --check \
             src/interface/ffi/build.zig \
             src/interface/ffi/src/main.zig \
