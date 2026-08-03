@@ -3,9 +3,10 @@
 # See: https://github.com/hyperpolymath/gv-clade-index
 
 [identity]
-# TODO(owner): this uuid is the rsr-template's; a real haec entry must be
-# assigned from gv-clade-index — do not invent one here.
-uuid = "a5ea1382-a34c-5334-8a46-a2ebe904c810"
+# From the gv-clade-index registry (deterministic v5 of
+# github.com/hyperpolymath/haec). Reclassification rm → fv proposed in
+# gv-clade-index#58; clade fields follow the registry's current ruling.
+uuid = "90db7939-1d8d-5fec-9dbf-f2674b7818f5"
 primary-forge = "github"
 primary-owner = "hyperpolymath"
 canonical-name = "haec"
