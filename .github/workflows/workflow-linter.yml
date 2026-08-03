@@ -66,23 +66,45 @@ jobs:
           echo "All workflows have permissions declared"
 
       - name: Check SHA-Pinned Actions
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           echo "=== Checking Action Pinning ==="
-          # Find any uses: lines that don't have @SHA format
-          # Pattern: uses: owner/repo@<40-char-hex>
-          unpinned=$(grep -rnE "^[[:space:]]+uses:" .github/workflows/ | \
-            grep -v "@[a-f0-9]\{40\}" | \
-            grep -v "uses: \./\|uses: docker://\|uses: actions/github-script" || true)
+          if [ -f .github/workflows/actions.lock ]; then
+            # Pin authority is the Actions dependency lockfile: workflows use
+            # readable tags, the lockfile maps each ref to an exact commit and
+            # the runner enforces it. Verify every action ref has a lockfile
+            # entry (offline coverage check).
+            gh extension install github/gh-actions-lock
+            gh actions-lock --verify-local
 
-          if [ -n "$unpinned" ]; then
-            echo "ERROR: Found unpinned actions:"
-            echo "$unpinned"
-            echo ""
-            echo "Replace version tags with SHA pins, e.g.:"
-            echo "  uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6.0.1"
-            exit 1
+            # Reusable workflow calls are outside lockfile scope and must
+            # remain SHA-pinned inline.
+            unpinned=$(grep -rnE "^[[:space:]]+uses:[[:space:]]*[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+/\.github/workflows/[^@]+@" .github/workflows/ | \
+              grep -v "@[a-f0-9]\{40\}" || true)
+            if [ -n "$unpinned" ]; then
+              echo "ERROR: Found reusable workflow calls not pinned to a SHA:"
+              echo "$unpinned"
+              exit 1
+            fi
+            echo "Lockfile coverage verified; reusable workflow calls are SHA-pinned"
+          else
+            # No lockfile: every uses: must carry an inline SHA pin.
+            # Pattern: uses: owner/repo@<40-char-hex>
+            unpinned=$(grep -rnE "^[[:space:]]+uses:" .github/workflows/ | \
+              grep -v "@[a-f0-9]\{40\}" | \
+              grep -v "uses: \./\|uses: docker://\|uses: actions/github-script" || true)
+
+            if [ -n "$unpinned" ]; then
+              echo "ERROR: Found unpinned actions:"
+              echo "$unpinned"
+              echo ""
+              echo "Replace version tags with SHA pins, e.g.:"
+              echo "  uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6.0.1"
+              exit 1
+            fi
+            echo "All actions are SHA-pinned"
           fi
-          echo "All actions are SHA-pinned"
 
       - name: Check for Duplicate Workflows
         run: |
