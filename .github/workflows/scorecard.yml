@@ -20,7 +20,8 @@ jobs:
     # caller's top-level contents: read; a reusable requesting more
     # permissions than its caller grants is a startup_failure.
     permissions:
+      actions: read
       contents: read
       security-events: write
       id-token: write
-    uses: hyperpolymath/standards/.github/workflows/scorecard-reusable.yml@d135b05bfc647d0c0fbfedc7e80f37ea50f49236
+    uses: hyperpolymath/standards/.github/workflows/scorecard-reusable.yml@5a597720580d12fa04d24e1b9e100e2eb8d6e653
