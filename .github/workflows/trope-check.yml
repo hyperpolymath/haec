@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: MPL-2.0
+# This workflow is managed by gh actions-lock.
 # Copyright (c) 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>
 #
 # Haec: every example lowers to a well-formed Trope IR document AND round-trips
@@ -29,14 +30,14 @@ jobs:
       image: ghcr.io/stefan-hoeck/idris2-pack@sha256:de9781906050dc44704ec6de0108c86f899ef17b2642932b79e00245d613b8ad
     steps:
       - name: Checkout Haec
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        uses: actions/checkout@v7.0.1
         with:
           path: haec
 
       # Checked out as a SIBLING of haec/ so tests/check-examples.sh finds it at
       # $ROOT/../trope-checker — which also activates the schema drift guard.
       - name: Checkout trope-checker (reference checker + canonical IR schema)
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        uses: actions/checkout@v7.0.1
         with:
           repository: hyperpolymath/trope-checker
           ref: 69221ad6bec0c9286cb5c917edfad281e7e0089e # main @ 2026-07-28
