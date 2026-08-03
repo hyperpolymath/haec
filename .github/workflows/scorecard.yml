@@ -16,4 +16,11 @@ concurrency:
 
 jobs:
   scorecard:
+    # The reusable runs OSSF Scorecard, which needs these beyond the
+    # caller's top-level contents: read; a reusable requesting more
+    # permissions than its caller grants is a startup_failure.
+    permissions:
+      contents: read
+      security-events: write
+      id-token: write
     uses: hyperpolymath/standards/.github/workflows/scorecard-reusable.yml@d135b05bfc647d0c0fbfedc7e80f37ea50f49236

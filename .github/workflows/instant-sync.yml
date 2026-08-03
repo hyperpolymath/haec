@@ -13,7 +13,21 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
+      # Secrets are only readable in step-level env (a job-level `if:` on
+      # secrets is a parse-time startup_failure), so gate here.
+      - name: Gate on FARM_DISPATCH_TOKEN presence
+        id: gate
+        env:
+          FARM_DISPATCH_TOKEN: ${{ secrets.FARM_DISPATCH_TOKEN }}
+        run: |
+          if [ -z "$FARM_DISPATCH_TOKEN" ]; then
+            echo "::notice::FARM_DISPATCH_TOKEN not configured; skipping dispatch"
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          fi
       - name: Trigger Propagation
+        if: steps.gate.outputs.present == 'true'
         uses: peter-evans/repository-dispatch@v4.0.1
         with:
           token: ${{ secrets.FARM_DISPATCH_TOKEN }}
