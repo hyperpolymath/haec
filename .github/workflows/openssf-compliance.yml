@@ -2,7 +2,7 @@
 # This workflow is managed by gh actions-lock.
 # OpenSSF Best Practices compliance gate — blocks PRs and pushes that lack
 # required files or still contain unfilled placeholder tokens.
-name: "🟡 Check: OpenSSF best-practices"
+name: "🔴 Gate: OpenSSF best-practices"
 on:
   push:
     branches: [main]
