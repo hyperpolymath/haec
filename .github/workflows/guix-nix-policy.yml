@@ -15,7 +15,7 @@ concurrency:
 permissions:
   contents: read
 jobs:
-  check:
+  guix-only-policy:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:

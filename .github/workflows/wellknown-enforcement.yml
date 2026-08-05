@@ -9,7 +9,7 @@ on:
 permissions:
   contents: read
 jobs:
-  validate:
+  wellknown-rfc9116:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
