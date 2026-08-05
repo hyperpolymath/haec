@@ -22,11 +22,12 @@ scratch() { mktemp -d "${TMPDIR:-/tmp}/haec-canary.XXXXXX"; }
 
 # --- canary 1: weak crypto must be rejected -------------------------------
 c1() {
-  local d; d=$(scratch); trap 'rm -rf "$d"' RETURN
+  local d; d=$(scratch)
   printf 'fn h() { md5(x) }\n' > "$d/lib.rs"
   local hit
   hit=$(cd "$d" && grep -rE 'md5\(|sha1\(' --include="*.rs" . 2>/dev/null \
         | grep -v 'checksum\|cache\|test\|spec' | head -5 || true)
+  rm -rf "$d"
   if [ -n "$hit" ]; then
     ok "weak crypto (md5) is detected"
   else
@@ -40,11 +41,12 @@ c1() {
 # used example.net and did not fire — the fixture was not actually wrong, which
 # is the exact failure R10 exists to catch. Kept as a caution.
 c2() {
-  local d; d=$(scratch); trap 'rm -rf "$d"' RETURN
+  local d; d=$(scratch)
   printf 'const u = "http://data.internal.invalid/x";\n' > "$d/app.rs"
   local hit
   hit=$(cd "$d" && grep -rE 'http://[^l][^o][^c]' --include="*.rs" . 2>/dev/null \
         | grep -v 'localhost\|127.0.0.1\|example\|test\|spec' | head -5 || true)
+  rm -rf "$d"
   if [ -n "$hit" ]; then
     ok "plaintext HTTP is detected"
   else
@@ -54,11 +56,12 @@ c2() {
 
 # --- canary 3: hardcoded secrets must be rejected -------------------------
 c3() {
-  local d; d=$(scratch); trap 'rm -rf "$d"' RETURN
+  local d; d=$(scratch)
   printf 'let api_key = "AAAABBBBCCCCDDDDEEEEFFFFGGGG1234";\n' > "$d/cfg.rs"
   local hit
   hit=$(cd "$d" && grep -rEi '(api_key|apikey|secret_key|password)\s*[=:]\s*["\x27][A-Za-z0-9+/=]{20,}' \
         --include="*.rs" . 2>/dev/null | grep -v 'example\|sample\|test\|mock\|placeholder' | head -3 || true)
+  rm -rf "$d"
   if [ -n "$hit" ]; then
     ok "hardcoded secret is detected"
   else
@@ -81,10 +84,11 @@ c4() {
 # --- canary 5: clean input must NOT be rejected ---------------------------
 # Guards the opposite error: a canary suite that always fires proves nothing.
 c5() {
-  local d; d=$(scratch); trap 'rm -rf "$d"' RETURN
+  local d; d=$(scratch)
   printf 'fn h() { sha256(x) }\nconst u = "https://ok.invalid/x";\n' > "$d/clean.rs"
   local hit
   hit=$(cd "$d" && grep -rE 'md5\(|sha1\(' --include="*.rs" . 2>/dev/null | head -1 || true)
+  rm -rf "$d"
   if [ -z "$hit" ]; then
     ok "clean input is not falsely rejected"
   else
