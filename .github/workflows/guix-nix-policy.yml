@@ -24,6 +24,7 @@ jobs:
       - uses: actions/checkout@v7.0.1
       - name: Enforce Guix primary / Nix fallback
         run: |
+          FAILED=false
           # Check for package manager files
           HAS_GUIX=$(find . -name "*.scm" -o -name ".guix-channel" -o -name "guix.scm" 2>/dev/null | head -1)
           HAS_NIX=$(find . -name "*.nix" 2>/dev/null | head -1)
@@ -31,7 +32,9 @@ jobs:
           # Block new package-lock.json, yarn.lock, Gemfile.lock, etc.
           NEW_LOCKS=$(git diff --name-only --diff-filter=A HEAD~1 2>/dev/null | grep -E 'package-lock\.json|yarn\.lock|Gemfile\.lock|Pipfile\.lock|poetry\.lock|cargo\.lock' || true)
           if [ -n "$NEW_LOCKS" ]; then
-            echo "⚠️ Lock files detected. Prefer Guix manifests for reproducibility."
+            echo "❌ Foreign lock files added — this repo is Guix-only:"
+            echo "$NEW_LOCKS"
+            FAILED=true
           fi
 
           # Prefer Guix, fallback to Nix
@@ -43,4 +46,8 @@ jobs:
             echo "ℹ️ Consider adding guix.scm or flake.nix for reproducible builds"
           fi
 
-          echo "✅ Package policy check passed"
+          if [ "$FAILED" = true ]; then
+            echo "Guix-only package policy violated — see above."
+            exit 1
+          fi
+          echo "✅ Guix-only package policy satisfied"
