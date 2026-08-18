@@ -47,6 +47,18 @@ jobs:
           xz --version | head -1
           jq --version
 
+      # The pinned idris2-pack image ships no xz binary, so setup-zig's
+      # .tar.xz download fails with "tar (child): xz: Cannot exec".
+      - name: Install xz (needed to unpack the Zig tarball)
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! command -v xz >/dev/null 2>&1; then
+            apt-get update -qq
+            apt-get install -y -qq --no-install-recommends xz-utils
+          fi
+          xz --version | head -1
+
       - name: Set up Zig
         uses: goto-bus-stop/setup-zig@v2.2.1
         with:
@@ -63,8 +75,8 @@ jobs:
           ver="$(idris2 --version)"
           echo "idris2 --version -> ${ver}"
           case "$ver" in
-            *"0.8.0"*) ;;
-            *) echo "::error::expected Idris 2 0.8.0, got: ${ver}"; exit 1 ;;
+            *"0.7.0"*) ;;
+            *) echo "::error::expected Idris 2 0.7.0, got: ${ver}"; exit 1 ;;
           esac
           idris2 --typecheck abi.ipkg
 
