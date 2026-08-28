@@ -130,6 +130,15 @@ jobs:
             -exec grep -aPrl "$patterns" {} \; > "$results_file" 2>/dev/null || true
           findings=$(wc -l < "$results_file")
           echo "findings=$findings" >> "$GITHUB_OUTPUT"
+          # Blocking subset: C0 controls and NUL only (owner ruling 2026-08-28).
+          # Invisible Unicode (NBSP/BOM/zero-width) stays ADVISORY - about 2,100
+          # estate files carry it as legitimate typography in prose.
+          blocking=0
+          while IFS= read -r bf; do
+            [ -z "$bf" ] && continue
+            grep -qaP '\x00|[\x01-\x08\x0B\x0C\x0E-\x1F]' "$bf" && blocking=$((blocking+1))
+          done < "$results_file"
+          echo "blocking=$blocking" >> "$GITHUB_OUTPUT"
           while IFS= read -r filepath; do
             [ -z "$filepath" ] && continue
             relative_path="${filepath#"$GITHUB_WORKSPACE"/}"
@@ -245,6 +254,9 @@ jobs:
         if: always()
         shell: bash
         env:
+          EMPTY_LINT_FINDINGS: ${{ steps.empty_lint.outputs.findings }}
+          EMPTY_LINT_BLOCKING: ${{ steps.empty_lint.outputs.blocking }}
+          EMPTY_LINT_OUTCOME: ${{ steps.empty_lint.outcome }}
           A2ML_OUTCOME: ${{ steps.a2ml.outcome }}
           K9_OUTCOME: ${{ steps.k9.outcome }}
           ECLEX_OUTCOME: ${{ steps.eclexiaiser.outcome }}
@@ -256,6 +268,21 @@ jobs:
             if [ "$result" = failure ]; then failed=1; fi
           done
           if [ "$GROOVE_VALID" = false ]; then failed=1; fi
+          # empty-linter: C0/NUL corruption FAILS the build; invisible Unicode
+          # (NBSP/BOM/zero-width) only WARNS - owner ruling 2026-08-28 after a
+          # census showed ~2,100 estate files carry the latter as typography.
+          # The outcome check matters as much as the counts: if the lint step
+          # crashes, both counts arrive empty and a count-only check passes.
+          if [ "${EMPTY_LINT_OUTCOME:-}" = "failure" ]; then
+            echo "::error::empty-linter step itself failed - treating as gate failure"
+            failed=1
+          fi
+          if [ "${EMPTY_LINT_BLOCKING:-0}" -gt 0 ]; then
+            echo "::error::empty-linter: ${EMPTY_LINT_BLOCKING} file(s) contain C0 control characters or NUL - genuine corruption"
+            failed=1
+          elif [ "${EMPTY_LINT_FINDINGS:-0}" -gt 0 ]; then
+            echo "::warning::empty-linter: ${EMPTY_LINT_FINDINGS} file(s) contain invisible Unicode (advisory, non-blocking)"
+          fi
           if [ "$failed" -ne 0 ]; then
             echo '::error::One or more dogfood validators failed; see the consolidated scorecard'
             exit 1
