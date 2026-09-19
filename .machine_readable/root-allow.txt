@@ -70,3 +70,10 @@ design/                    # surface grammar, elaboration table, vendored IR sch
 compiler/                  # planned: parser/type-checker/elaborator/codegen (STATUS.adoc)
 lsp/                       # planned: editor support (STATUS.adoc)
 LICENSES/                  # REUSE texts: MPL-2.0 (code) + CC-BY-SA-4.0 (prose docs)
+
+# ─── Declared 2026-08-06: entries the RSR template's directory map did
+#     not anticipate. The template targets a documentation repository;
+#     these are this project's real top-level shape. Moving them would
+#     break every path that references them, to satisfy a map that was
+#     never written for it. Read from the estate-rules gate's own output.
+REQUIRES_INITIALISATION.md  # Project documentation.
