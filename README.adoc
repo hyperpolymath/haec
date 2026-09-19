@@ -13,6 +13,8 @@ image:https://img.shields.io/badge/status-design-orange[Status: design]
 [.lead]
 A Turing-complete language whose type discipline is *trope-particularity*.
 
+For proof progress summary, see link:PROOF-PROGRESS.adoc[`PROOF-PROGRESS.adoc`].
+
 NOTE: Working name. The project is the *language*, not the checker and not the
 vocabulary; *Haec* (from _haecceity_, "thisness") is a placeholder — rename freely.
 

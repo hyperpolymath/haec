@@ -1,0 +1,263 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+// SPDX-FileCopyrightText: © 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>
+= Haec — Proof Progress Summary
+:toc: macro
+:toclevels: 4
+:icons: font
+
+[NOTE]
+====
+This document provides a high-level summary of proof progress for Haec.
+For the authoritative honesty snapshot, see link:AFFIRMATION.adoc[`AFFIRMATION.adoc`] 
+(dated 2026-06-22).
+====
+
+== The Core Idea
+
+*Haec: A Turing-complete language whose type discipline is trope-particularity.*
+
+[quote, README.adoc]
+____
+A Turing-complete language (it has general recursion) in which every operation 
+over a *property-instance* — a quality as borne by this entity, in this context, 
+under these conditions — carries a *loss-shape grade*.
+
+Duck typing asks whether it quacks. A trope language lets you write the program 
+that decides which quack to keep — and the checker tells you, against each consumer's 
+declared use, whether the quack you kept was enough.
+____
+
+Haec does not decide whether a flow is acceptable. It **produces** a record of 
+graded effects — the **Trope IR** — and the (language-independent) **tropechecker** 
+consumes that IR and returns a verdict against each consumer's declared use-model.
+
+[quote, README.adoc]
+____
+Turing-completeness lives in Haec's terms; decidability lives in the checker's 
+grade algebra. The two never meet: the checker never executes a Haec program, so 
+Rice's theorem is no obstacle — an unbounded lossy loop simply gets an honest 
+"unknown" (`top`) grade, which any demanding use rejects.
+____
+
+== Current Status Snapshot
+
+From AFFIRMATION.adoc (as of 2026-06-22):
+
+*What exists (design pass):*
+- Surface grammar (`design/grammar.ebnf`)
+- Elaboration table with per-construct lowering-correctness (O2) obligation (`design/elaboration.adoc`)
+- `examples/` pairing small programs with their lowered Trope IR
+
+*Ground truth:* Every `examples/*.ir.json` is schema-valid against the IR contract 
+and round-trips through the sibling trope-checker to the verdict the example states.
+`just check` validates this standalone against the vendored schema.
+
+*What does NOT exist yet (deferred, named):*
+- The compiler (parser, type-checker, elaborator, codegen — `compiler/STATUS.adoc`)
+- The LSP (`lsp/STATUS.adoc`)
+- A runtime
+- The O2 lowering-correctness *proofs* are stated as obligations, not yet discharged (HC-5: stated, not asserted-as-done)
+
+*Honest scope:* Haec is one front-end among many; it defines neither the checker 
+nor the vocabulary. Its sole present claim is that its elaboration targets the IR 
+and its examples lower to IR the checker accepts.
+
+== Architecture Overview
+
+Haec is designed with clear separation of concerns:
+
+[cols="1,2,3",options="header"]
+|===
+| Component | Role | Status
+
+| Haec (this repo) | Front-end language | Design pass complete
+| Trope IR | Language-independent intermediate representation | Defined
+| trope-checker | Portable checker | Separate repo (`hyperpolymath/trope-checker`)
+| Compiler | Parser, type-checker, elaborator, codegen | Not yet implemented (`compiler/STATUS.adoc`)
+| LSP | Language server | Not yet implemented (`lsp/STATUS.adoc`)
+| Runtime | Execution environment | Not yet implemented
+|=== 
+
+=== Key Design Principle
+
+[quote, README.adoc]
+____
+Haec's type discipline is *trope-particularity*: every operation on a 
+property-instance carries a graded *loss-shape*, lowered to a language-neutral 
+*Trope IR* and checked against a declared use-model by a separate, portable 
+checker (`hyperpolymath/trope-checker`).
+____
+
+== Proof Artefacts
+
+=== Current State
+
+No proofs have been completed for Haec yet, but there is a clear proof infrastructure:
+
+The repository contains:
+- `AFFIRMATION.adoc` — Honesty snapshot (dated 2026-06-22, real content)
+- `design/grammar.ebnf` — Surface grammar
+- `design/elaboration.adoc` — Elaboration table with O2 obligations
+- `examples/*.ir.json` — Schema-valid IR examples that round-trip through trope-checker
+- `compiler/STATUS.adoc` — Compiler status
+- `lsp/STATUS.adoc` — LSP status
+
+No `proofs/` directory yet, but the design documents establish clear proof obligations.
+
+=== Proof Obligations
+
+From AFFIRMATION.adoc and design documents:
+
+[cols="1,3,2,2",options="header"]
+|===
+| ID | Obligation | Category | Status
+
+| HC-5 | O2 lowering-correctness proofs | Lowering | Stated, not asserted-as-done
+| O2 per-construct | Per-construct lowering correctness | Lowering | Stated in elaboration table
+| Compiler correctness | Parser, type-checker, elaborator, codegen | Implementation | Not started (compiler not implemented)
+|=== 
+
+== Proof Status Summary
+
+=== ✅ What IS Verified
+
+[cols="1,2,3,2",options="header"]
+|===
+| Category | Item | Count | Evidence
+
+| Design | Surface grammar | 1 | `design/grammar.ebnf`
+| Design | Elaboration table | 1 | `design/elaboration.adoc`
+| Examples | IR examples | Multiple | `examples/*.ir.json`
+| Schema validation | All examples valid | All | `just check` validates
+| Round-trip | Through trope-checker | All | Verified against stated verdicts
+| Honesty snapshot | AFFIRMATION.adoc | 1 | Dated 2026-06-22, real content
+|=== 
+
+=== ❌ What is NOT Proven
+
+[cols="1,3,2",options="header"]
+|===
+| Gap | Category | Notes
+
+| O2 lowering-correctness proofs | Lowering | HC-5 stated, not done
+| Per-construct lowering | Lowering | Obligations stated in elaboration table
+| Compiler implementation | Implementation | Not yet started
+| LSP implementation | Tooling | Not yet started
+| Runtime implementation | Execution | Not yet started
+| No proofs directory | Infrastructure | Not yet created
+|=== 
+
+=== 📊 Metrics
+
+[cols="1,2,3",options="header"]
+|===
+| Metric | Count | Notes
+
+| Design documents | 2+ | grammar.ebnf, elaboration.adoc
+| Example IR files | Multiple | All schema-valid and round-trip verified
+| Status documents | 2+ | AFFIRMATION.adoc, compiler/STATUS.adoc, lsp/STATUS.adoc
+| Proofs completed | 0 | No proofs directory yet
+| Proof obligations stated | 1+ | HC-5 + per-construct O2
+|=== 
+
+== Honesty Check
+
+Haec is **honest about its gaps**:
+
+[IMPORTANT]
+====
+* No proofs have been completed
+* The compiler, LSP, and runtime do not exist yet
+* Proof obligations (HC-5, O2) are explicitly stated but not discharged
+* The AFFIRMATION.adoc (dated 2026-06-22) clearly states what exists and what is deferred
+* Examples are verified (schema-valid, round-trip through trope-checker) but not proven
+====
+
+[cols="1,2,3,1",options="header"]
+|===
+| Claim | Can We Claim It? | Evidence | Caveat
+
+| Surface grammar defined | ✅ Yes | `design/grammar.ebnf` | Design pass complete
+| Elaboration table defined | ✅ Yes | `design/elaboration.adoc` | O2 obligations stated
+| Examples round-trip | ✅ Yes | `examples/*.ir.json` + trope-checker | Schema-valid, correct verdicts
+| `just check` validates | ✅ Yes | Standalone validation | Ground truth
+| O2 lowering-correctness | ❌ No | HC-5 stated, not done | Proofs not discharged
+| Compiler implemented | ❌ No | `compiler/STATUS.adoc` | Not started
+| Proofs exist | ❌ No | No proofs directory | Early implementation phase
+|=== 
+
+== Build & Verification
+
+=== Gates
+
+[cols="1,3,2",options="header"]
+|===
+| Gate | Command | Status
+
+| Design validation | `just check` | ✅ Validates examples against schema
+| Full build | Not yet configured | Compiler not implemented
+| Proof check | Not yet configured | Proofs not implemented
+|=== 
+
+`just check` validates that all example IR files are schema-valid and round-trip 
+through the trope-checker to the stated verdicts.
+
+== What This Means
+
+* *For users:* Haec is in **design phase** with verified examples but no implementation. 
+  The Trope IR is defined and examples work, but there's no compiler yet.
+* *For contributors:* The **highest priority** is implementing the compiler (parser, 
+  type-checker, elaborator, codegen) so that O2 lowering-correctness proofs can be 
+  discharged. The second priority is the LSP.
+* *For auditors:* Haec is **honest about gaps** — the AFFIRMATION.adoc explicitly states 
+  what exists (design, examples) and what doesn't (compiler, proofs). The examples are 
+  verified but not proven.
+
+== Key Design Documents
+
+[cols="1,3,2",options="header"]
+|===
+| Document | Purpose | Location
+
+| README.adoc | Vision, core concept, architecture | Root
+| AFFIRMATION.adoc | **Authoritative** honesty snapshot (dated 2026-06-22) | Root
+| design/grammar.ebnf | Surface grammar | `design/`
+| design/elaboration.adoc | Elaboration table with O2 obligations | `design/`
+| examples/*.ir.json | Schema-valid IR examples | `examples/`
+| compiler/STATUS.adoc | Compiler status | `compiler/`
+| lsp/STATUS.adoc | LSP status | `lsp/`
+|=== 
+
+== Relationship to Other Hyperpolymath Projects
+
+Haec is part of the trope-theoretic ecosystem:
+
+[cols="1,2,3",options="header"]
+|===
+| Project | Relationship | Haec's Role
+
+| trope-checker | Portable checker | Separate repo; checks Haec's Trope IR output
+| Vocarium | Trope database | Haec produces Trope IR for Vocarium
+| Hermeneia | Query language | Sibling project; queries Vocarium
+|=== 
+
+== Lessons Learned
+
+=== Separation of Concerns
+Haec's design cleanly separates:
+- **Language front-end** (Haec) — produces Trope IR
+- **Checker** (trope-checker) — validates Trope IR against use-models
+- **Vocabulary** — not owned by Haec; separate concern
+
+This separation means Turing-completeness (Haec) and decidability (checker) never 
+meet, avoiding Rice's theorem obstacles.
+
+=== Honest Scope Declaration
+The AFFIRMATION.adoc explicitly states: "Haec is one front-end among many; it defines 
+neither the checker nor the vocabulary. Its sole present claim is that its elaboration 
+targets the IR and its examples lower to IR the checker accepts."
+
+---
+
+*Generated: 2026-08-14*
+*Source of truth: link:AFFIRMATION.adoc[`AFFIRMATION.adoc`] + link:README.adoc[`README.adoc`]*
