@@ -4,19 +4,22 @@
 
 [identity]
 # From the gv-clade-index registry (deterministic v5 of
-# github.com/hyperpolymath/haec). Reclassification rm → fv proposed in
-# gv-clade-index#58; clade fields follow the registry's current ruling.
+# github.com/hyperpolymath/haec). Reclassified rm → fv, secondary gv → nl,
+# per gv-clade-index#58 (resolved: registry PR hyperpolymath/gv-clade-index#88).
 uuid = "90db7939-1d8d-5fec-9dbf-f2674b7818f5"
 primary-forge = "github"
 primary-owner = "hyperpolymath"
 canonical-name = "haec"
-prefixed-name = "rm-haec"
+prefixed-name = "fv-haec"
 
 [clade]
-primary = "rm"
-secondary = ["gv"]
+# The 2 letters abbreviate the CLADE's name below — never the repo's name.
+# See gv-clade-index: verisim/seed/clades.a2ml for all 12 codes.
+primary = "fv"
+primary-name = "Formal Verification & Proofs"
+secondary = ["nl"]
 assigned = "2026-03-16"
-rationale = ""
+rationale = "Haec — Turing-complete language with trope-particularity type discipline; emits Trope IR (checker and vocabulary live in trope-checker / trope-particularity-workbench)."
 
 [forges]
 github = "hyperpolymath/haec"
@@ -25,5 +28,8 @@ bitbucket = "hyperpolymath/haec"
 
 [lineage]
 type = "standalone"
-parent = "RSR template — scaffold for new repos"
+parent = ""
 born = "2026-03-16"
+
+[status]
+phase = "active"
