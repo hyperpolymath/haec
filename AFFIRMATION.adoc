@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: CC-BY-SA-4.0
 // SPDX-License-Identifier: CC-BY-SA-4.0
 = AFFIRMATION — Haec
-:revdate: 2026-06-22
+:revdate: 2026-10-27
 
 A dated, ground-truthed honesty snapshot. This is the brief's "STATUS" for Haec:
 what exists, what is verified, what is deferred — stated plainly, no overclaim.
@@ -30,3 +30,20 @@ nor the vocabulary. Its sole present claim is that its elaboration targets the I
 and its examples lower to IR the checker accepts.
 
 — Authored by the build agent under owner direction; signed in git history.
+
+== As of 2026-10-27
+
+*Ground truth (run here, UTC 07:49, haec `e9bee39`):*
+`TROPECHECK_BIN=<tropecheck-rs> bash tests/check-examples.sh` → the three examples
+(`faithful-record`, `survey-collapse`, `station-average`) lower to well-formed Trope
+IR; the vendored `design/trope-ir.schema.json` matches the canonical checker schema;
+all three round-trip through the checker to the verdict each states —
+`faithful-record` `p-sufficient`, `survey-collapse` `p-insufficient` with witness
+`e_collapse/fate.quality`, `station-average` `p-sufficient`. "examples: all lower to
+valid Trope IR." The checker was the Rust fast core built from trope-checker
+`44020f9` (`main` 216f23b plus the two Phase 0 spec/CI patches, which do not touch
+`src/rust`).
+
+*Still true, stated once:* no compiler, no LSP, no runtime; the O2 lowering
+obligations in `design/elaboration.adoc` are stated, not discharged; no proofs of
+our own.
