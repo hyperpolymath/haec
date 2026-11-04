@@ -65,12 +65,19 @@ what the guard exists to catch. `tests/check-examples.sh` now also fails under
 `TROPECHECK_REQUIRED=1` when the canonical schema is absent, so CI cannot pass
 with the guard silently skipped.
 
-*NOT RUN here:* the Idris2 reference-checker path that
+*NOT RUN here, attested by CI:* the Idris2 reference-checker path that
 `.github/workflows/trope-check.yml` takes (no Idris 2 in this session). That
-workflow, now pinned to trope-checker `4ecba4f`, is the attestation; its run on
-this change is cited in the pull request. `CI / required` now asserts Idris 2
-0.8.0, the version the digest-pinned image ships (it asserted 0.7.0 and was red on
-`main` from 2026-10-21; haec #83).
+workflow, now pinned to trope-checker `4ecba4f`, ran on this change: job
+`examples-lower-to-valid-ir` of
+https://github.com/hyperpolymath/haec/actions/runs/41928694567 — success,
+2026-11-04T22:51:37Z (the Idris2 reference checker built at `4ecba4f` gives the
+same three verdicts and witness). `CI / required` now asserts Idris 2 0.8.0, the
+version the digest-pinned image ships (it asserted 0.7.0 and was red on `main`
+from 2026-10-21; haec #83): in run 41928694928 the Idris step passes
+(`idris2 --version -> Idris 2, version 0.8.0-6ca00e72e`, `abi.ipkg` typechecks,
+the Zig FFI tests pass) and the job then fails in its last step on the
+root-shape allowlist (`.machine_readable/root-allow.txt`, the owner-only half
+of #83), so that check stays red for a reason this entry does not claim to fix.
 
 *Still true, stated once:* no compiler, no LSP, no runtime; O2 obligations stated,
 not discharged; no proofs of our own.
