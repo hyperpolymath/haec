@@ -2,9 +2,12 @@
 # SPDX-License-Identifier: MPL-2.0
 # Copyright (c) 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>
 #
-# Every Haec example lowers to a well-formed Trope IR document. Pure bash + jq,
-# no Python. Self-contained: structural checks against the vendored IR contract.
-# The full round-trip (verdicts) runs when the sibling trope-checker is present.
+# Every checked-in example IR (examples/*.ir.json — lowered by hand; there is no
+# compiler yet) is a well-formed Trope IR document. This script checks those
+# documents; it does not lower anything. Pure bash + jq, no Python.
+# Self-contained: structural checks against the vendored IR contract. The
+# schema-drift guard and the full round-trip (verdicts) run when the sibling
+# trope-checker is present.
 set -uo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -36,8 +39,12 @@ if [ -f "$SIB/schemas/trope-ir.schema.json" ]; then
   else
     echo -e "${R}FAIL${O} vendored IR schema has drifted from trope-checker/schemas/trope-ir.schema.json"; fail=1
   fi
+elif [ "${TROPECHECK_REQUIRED:-0}" = "1" ]; then
+  # Under TROPECHECK_REQUIRED=1 (CI) a guard that silently does not run is a
+  # fake gate, exactly as for the checker binary below.
+  echo -e "${R}FAIL${O} TROPECHECK_REQUIRED=1 but no canonical schema at $SIB/schemas/trope-ir.schema.json — schema-drift guard did not run"; fail=1
 else
-  echo -e "${Y}note${O} sibling trope-checker not checked out; skipping schema-drift guard"
+  echo -e "${Y}note${O} sibling trope-checker not checked out; skipping schema-drift guard (TROPECHECK_REQUIRED=1 makes this fatal)"
 fi
 
 # 4. full round-trip: verdicts via the reference checker.
