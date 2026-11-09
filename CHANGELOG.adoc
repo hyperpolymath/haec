@@ -7,3 +7,13 @@ Changelog], and this project adheres to
 https://semver.org/spec/v2.0.0.html[Semantic Versioning].
 
 === [Unreleased]
+
+==== Added
+
+* *A note saying what `+verification/proofs/+` actually contains (2026-11-09).*
+`+docs/status/PROOF-STATUS.adoc+` now records that the directory is the unmodified
+mint set, that none of it states a property of HAEC, and that the 0%-proven summary
+is therefore the accurate count rather than a backlog against those files. Also
+records that nothing there supports a Proof Witness Grade under PROOF-POLICY §8.1,
+and that removing the templates (as trope-checker did under ADR 0005 D5) is an
+owner decision.
