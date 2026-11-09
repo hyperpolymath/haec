@@ -108,7 +108,15 @@ Under PROOF-POLICY §8.1 none of this supports a Proof Witness Grade, because no
 it is a theory obligation of this repository. `hyperpolymath/trope-checker` removed
 the identical never-instantiated templates under ADR 0005 D5; whether HAEC does the
 same is an owner decision (doctrine 7: cold is not disposable), so nothing is
-deleted here. The real obligations are the ones named in `PROOF-NEEDS.adoc`.
+deleted here.
+
+One distinction matters if the templates ever are removed: *the files are not
+proofs, but the paths are still targets.* `PROOF-NEEDS.adoc` assigns all seven of
+this repository's required proofs to paths inside `verification/proofs/` — ABI-1
+to ABI-5 to `idris2/ABI/{Pointers,Layout,Platform,Foreign,Compliance}.idr`, TP-1 to
+`idris2/Types.idr` and TP-2 to `lean4/ApiTypes.lean`. Deleting the boilerplate at
+those paths removes placeholder content, never the obligation that something
+eventually goes there.
 
 == Verification Commands
 
