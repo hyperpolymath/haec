@@ -10,6 +10,19 @@ https://semver.org/spec/v2.0.0.html[Semantic Versioning].
 
 ==== Fixed
 
+* *Stack coherence: three README references, the checker pin and the scan pin
+(2026-11-17).* The README cited a root `+STATUS.adoc+` that does not exist; the
+files are `+compiler/STATUS.adoc+` and `+lsp/STATUS.adoc+`, and it now names
+them. The trope-check workflow pins trope-checker at `+0dceab6+`, the commit
+hermeneia and vocarium move to in the same sweep; between the previous pin
+(`+4ecba4f+`) and that commit, trope-checker's `+src/+`, `+schemas/+`,
+`+spec/+` and conformance fixtures are unchanged, and the one Idris2 file that
+differs differs in comments only. The Hypatia scan pin moves to the revision
+that installs OTP 27.3.4.19 (hypatia#1061). Not changed: the O2 obligation in
+`+design/elaboration.adoc+` that still names the v0.1
+`+Predicated+`-incomparable-to-`+Dropped+` claim. Rewording an obligation is
+the owner's.
+
 * *`+docs/status/PROOF-STATUS.adoc+` published a percentage, which PROOF-POLICY
 forbids (2026-11-09).* The summary read `+*Overall*: 0% proven+`. §8.4 rule 7 is
 explicit — "Never publish 'X% proved', an average grade, or a single confidence
