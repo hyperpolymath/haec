@@ -36,16 +36,23 @@ jobs:
       - name: Check SPDX Headers
         run: |
           echo "=== Checking SPDX License Headers ==="
+          # The header comment block is read, not line 1 alone. gh actions-lock
+          # inserts "# This workflow is managed by gh actions-lock." at line 1
+          # whenever it refreshes the lockfile, so a line-1 test fails every
+          # workflow the tool has touched. The test below is the one in
+          # standards' governance-reusable.yml: the leading run of comment
+          # lines must hold the identifier.
           failed=0
           for file in .github/workflows/*.yml .github/workflows/*.yaml; do
             [ -f "$file" ] || continue
-            if ! head -1 "$file" | grep -q "^# SPDX-License-Identifier:"; then
-              echo "ERROR: $file missing SPDX header"
+            if ! awk '/^---[[:space:]]*$/ { next } /^#/ { print; next } { exit }' "$file" \
+                 | grep -q "^# SPDX-License-Identifier:"; then
+              echo "ERROR: $file has no SPDX-License-Identifier in its header comment block"
               failed=1
             fi
           done
           if [ $failed -eq 1 ]; then
-            echo "Add '# SPDX-License-Identifier: MPL-2.0' as first line"
+            echo "Add '# SPDX-License-Identifier: <id>' to the header comment block"
             exit 1
           fi
           echo "All workflows have SPDX headers"
