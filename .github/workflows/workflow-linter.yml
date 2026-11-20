@@ -36,16 +36,23 @@ jobs:
       - name: Check SPDX Headers
         run: |
           echo "=== Checking SPDX License Headers ==="
+          # The header comment block is read, not line 1 alone. gh actions-lock
+          # inserts "# This workflow is managed by gh actions-lock." at line 1
+          # whenever it refreshes the lockfile, so a line-1 test fails every
+          # workflow the tool has touched. The test below is the one in
+          # standards' governance-reusable.yml: the leading run of comment
+          # lines must hold the identifier.
           failed=0
           for file in .github/workflows/*.yml .github/workflows/*.yaml; do
             [ -f "$file" ] || continue
-            if ! head -1 "$file" | grep -q "^# SPDX-License-Identifier:"; then
-              echo "ERROR: $file missing SPDX header"
+            if ! awk '/^---[[:space:]]*$/ { next } /^#/ { print; next } { exit }' "$file" \
+                 | grep -q "^# SPDX-License-Identifier:"; then
+              echo "ERROR: $file has no SPDX-License-Identifier in its header comment block"
               failed=1
             fi
           done
           if [ $failed -eq 1 ]; then
-            echo "Add '# SPDX-License-Identifier: MPL-2.0' as first line"
+            echo "Add '# SPDX-License-Identifier: <id>' to the header comment block"
             exit 1
           fi
           echo "All workflows have SPDX headers"
@@ -82,8 +89,33 @@ jobs:
 
             # Reusable workflow calls are outside lockfile scope and must
             # remain SHA-pinned inline.
-            unpinned=$(grep -rnE "^[[:space:]]+uses:[[:space:]]*[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+/\.github/workflows/[^@]+@" .github/workflows/ | \
-              grep -v "@[a-f0-9]\{40\}" || true)
+            # A reusable workflow call is a job-level `uses:`. With yq each
+            # workflow is parsed and the DECODED value is judged, so quoting,
+            # escapes, flow style and trailing comments cannot hide a ref: a
+            # call that is not local (./) must end in @ followed by exactly
+            # 40 lowercase hex characters.
+            # No parser, no verdict: reading the raw text instead would let a
+            # flow-style mapping or an escaped path through, so the step fails
+            # when yq is missing.
+            if ! command -v yq >/dev/null 2>&1; then
+              echo "ERROR: yq is not on this runner; reusable workflow refs cannot be checked"
+              exit 1
+            fi
+            unpinned=""
+            for file in .github/workflows/*.yml .github/workflows/*.yaml; do
+              [ -f "$file" ] || continue
+              if ! calls="$(yq -r '.jobs[] | select(has("uses")) | .uses' "$file" 2>&1)"; then
+                echo "ERROR: $file is not parseable as YAML: $calls"
+                exit 1
+              fi
+              while IFS= read -r call; do
+                [ -n "$call" ] || continue
+                case "$call" in ./*) continue ;; esac
+                if ! printf '%s\n' "$call" | grep -qE '@[0-9a-f]{40}$'; then
+                  unpinned="${unpinned}${file}: ${call}"$'\n'
+                fi
+              done < <(printf '%s\n' "$calls")
+            done
             if [ -n "$unpinned" ]; then
               echo "ERROR: Found reusable workflow calls not pinned to a SHA:"
               echo "$unpinned"

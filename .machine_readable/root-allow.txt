@@ -24,6 +24,15 @@ SECURITY.md                # REQUIRED AT ROOT by scorecard-enforcer CI + the sec
 LICENSE
 CHANGELOG.md
 
+# ─── Root documents this repository keeps in AsciiDoc (owner-authorised 2026-11-17) ───
+# The three .md entries above are the template's spelling; this repository's
+# files are .adoc. The .md entries are left in place.
+CHANGELOG.adoc             # the changelog this repository maintains
+CONTRIBUTING.adoc          # contributor guide, AsciiDoc form of CONTRIBUTING.md
+SECURITY.adoc              # security policy pointer, AsciiDoc form of SECURITY.md
+FUNDING                    # funding statement (AsciiDoc content, no extension)
+PROOF-PROGRESS.adoc        # proof progress summary, kept beside README for visibility
+
 # ─── Build entry points (must live at root for their tooling) ────────────────
 Justfile                   # delegates phases to build/just/*.just
 coordination.k9            # repo-local session binding (template-mandated)
