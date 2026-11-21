@@ -5,6 +5,17 @@
 :toclevels: 4
 :icons: font
 
+[WARNING]
+.Superseded 2026-11-16 — do not cite
+====
+This summary predates the current proof tree and is no longer accurate. It says
+there is no proofs directory; there is one. `verification/proofs/` holds ten
+never-instantiated *template* prover files (Agda, Lean, Coq, six Idris2 and a
+TLA+ model) that prove nothing about Haec. The authoritative record is
+link:docs/status/PROOF-STATUS.adoc[`docs/status/PROOF-STATUS.adoc`], whose census
+(0 of 7 obligations done) is correct. The text below is kept as history.
+====
+
 [NOTE]
 ====
 This document provides a high-level summary of proof progress for Haec.
