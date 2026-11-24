@@ -111,7 +111,7 @@ provides.
 Design. The surface syntax and the elaboration table are the first artefacts;
 `examples/` pairs small programs with the IR they lower to, and each lowered IR
 round-trips through the trope-checker (schema-valid, expected verdict). There is no
-compiler yet — `compiler/` and `lsp/` are named future work (`STATUS.adoc`).
+compiler yet — `compiler/` and `lsp/` are named future work (`compiler/STATUS.adoc`, `lsp/STATUS.adoc`).
 
 == Repository map
 
@@ -124,8 +124,8 @@ compiler yet — `compiler/` and `lsp/` are named future work (`STATUS.adoc`).
 | `design/trope-ir.schema.json` | Vendored copy of the IR contract Haec targets (canonical in trope-checker).
 | `examples/`          | Small programs (`*.haec`) paired with the IR they lower to (`*.ir.json`).
 | `docs/trope-estate-architecture.svg` | The three-repo dependency picture.
-| `compiler/`          | (planned) Parser, type-checker, elaborator, codegen — see `STATUS.adoc`.
-| `lsp/`               | (planned) Editor support — see `STATUS.adoc`.
+| `compiler/`          | (planned) Parser, type-checker, elaborator, codegen — see `compiler/STATUS.adoc`.
+| `lsp/`               | (planned) Editor support — see `lsp/STATUS.adoc`.
 |===
 
 == Run the checks
