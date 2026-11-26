@@ -1,0 +1,7 @@
+# This workflow is managed by gh actions-lock.
+# just a comment
+name: t
+on: push
+permissions:
+  contents: read
+jobs: {}
