@@ -1,0 +1,14 @@
+# SPDX-License-Identifier: MPL-2.0
+name: t
+on: push
+permissions:
+  contents: read
+jobs:
+  a:
+    uses: org/repo/.github/workflows/x.yml@0123456789abcdef0123456789abcdef01234567
+  b:
+    uses: ./.github/workflows/local.yml
+  c:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1

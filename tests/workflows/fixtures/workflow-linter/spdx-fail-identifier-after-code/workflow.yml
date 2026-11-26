@@ -1,0 +1,6 @@
+name: t
+# SPDX-License-Identifier: MPL-2.0
+on: push
+permissions:
+  contents: read
+jobs: {}
